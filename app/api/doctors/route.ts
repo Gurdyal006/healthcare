@@ -37,21 +37,14 @@ export async function POST(req: Request) {
 
 // GET ALL DOCTORS
 export async function GET() {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const doctors = await User.find({ role: "doctor" })
-    .select("name specialization email _id");
+    const doctors = await User.find({ role: "doctor" })
+                .select("name specialization email _id profileImage experience gender");
 
-  return Response.json(doctors);
+    return Response.json(doctors);
+  } catch (err: any) {
+    return Response.json({ message: err.message }, { status: 500 });
+  }
 }
-// export async function GET() {
-//   try {
-//     await connectDB();
-
-//     const doctors = await User.find({ role: "doctor" }).select("-password");
-
-//     return Response.json(doctors);
-//   } catch (err: any) {
-//     return Response.json({ message: err.message }, { status: 500 });
-//   }
-// }

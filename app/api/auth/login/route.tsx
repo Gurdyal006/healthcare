@@ -14,6 +14,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
+  console.log("User found: login", user);
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
@@ -24,6 +26,8 @@ export async function POST(req: Request) {
     process.env.JWT_SECRET!,
     { expiresIn: "1d" }
   );
+
+  console.log("Login successful, token generated", token);
 
   const response = NextResponse.json({ message: "Login successful" });
 

@@ -135,6 +135,7 @@
 import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import toast from "react-hot-toast";
+import { SPECIALIZATIONS } from "@/lib/constants";
 
 export default function CreateDoctorPage() {
   const [form, setForm] = useState({
@@ -226,8 +227,48 @@ export default function CreateDoctorPage() {
             <Input label="Full Name" name="name" value={form.name} onChange={handleChange} />
             <Input label="Email" name="email" value={form.email} onChange={handleChange} type="email" />
             <Input label="Password" name="password" value={form.password} onChange={handleChange} type="password" />
-            <Input label="Specialization" name="specialization" value={form.specialization} onChange={handleChange} />
-            <Input label="Experience (years)" name="experience" value={form.experience} onChange={handleChange} type="number" />
+
+            {/*<Input label="Specialization" name="specialization" value={form.specialization} onChange={handleChange} />*/}
+            <div>
+              <label className="text-sm text-gray-600">
+                Specialization
+              </label>
+
+              <select
+                name="specialization"
+                value={form.specialization}
+                onChange={handleChange}
+                className="w-full mt-1 border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Select Specialization</option>
+
+                {SPECIALIZATIONS.map((sp) => (
+                  <option key={sp} value={sp}>
+                    {sp}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+            <label className="text-sm text-gray-600">Experience</label>
+
+            <select
+              name="experience"
+              value={form.experience}
+              onChange={handleChange}
+              className="w-full mt-1 border p-3 rounded-lg"
+            >
+              <option value="">Select Experience</option>
+
+              <option value="1">1 Year</option>
+              <option value="2">2 Years</option>
+              <option value="3">3 Years</option>
+              <option value="5">5 Years</option>
+              <option value="10">10 Years</option>
+
+            </select>
+          </div>
+            {/* <Input label="Experience (years)" name="experience" value={form.experience} onChange={handleChange} type="number" /> */}
 
             {/* Gender */}
             <div>

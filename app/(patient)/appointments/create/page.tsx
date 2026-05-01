@@ -4,10 +4,16 @@ import axiosInstance from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import toast from "react-hot-toast";
+import { SYMPTOM_MAP } from "@/lib/constants";
+import ProfileImage from "@/components/ProfileImage";
 
 type Doctor = {
+  _id: string;
   name: string;
   specialization: string;
+  email: string;
+  profileImage?: string;
+  experience?: number;
 };
 
 export default function CreateAppointmentPage() {
@@ -18,6 +24,7 @@ export default function CreateAppointmentPage() {
   const [patientName, setPatientName] = useState("");
   const [problem, setProblem] = useState("");
   const [user, setUser] = useState<any>(null);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
 
 
   const router = useRouter();
@@ -39,23 +46,20 @@ useEffect(() => {
 }, []);
 console.log("Current user:", user);
 
-  // Symptom map
-  const symptomMap: Record<string, string[]> = {
-    Fever: ["General Physician"],
-    Headache: ["Neurologist"],
-    Vomiting: ["General Physician", "Gastroenterologist"],
-    "Knee Pain": ["Orthopedic"],
-    "Back Pain": ["Orthopedic"],
+useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const res = await axiosInstance.get("/api/doctors");
+      setDoctors(res.data || []);
+    } catch {
+      toast.error("Failed to load doctors");
+    }
   };
 
-  const doctors: Doctor[] = [
-    { name: "Dr. Sharma", specialization: "General Physician" },
-    { name: "Dr. Mehta", specialization: "Orthopedic" },
-    { name: "Dr. Gupta", specialization: "Neurologist" },
-    {name: "Doctor 1",  specialization: "Orthopedic"}
-  ];
+  fetchDoctors();
+}, []);
 
-  const symptomsList = Object.keys(symptomMap);
+const symptomsList = Object.keys(SYMPTOM_MAP);
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms((prev) =>
@@ -69,15 +73,23 @@ console.log("Current user:", user);
   const specializations = useMemo(() => {
     const set = new Set<string>();
     selectedSymptoms.forEach((s) => {
-      symptomMap[s]?.forEach((sp) => set.add(sp));
+      SYMPTOM_MAP[s]?.forEach((sp) => set.add(sp));
     });
     return Array.from(set);
   }, [selectedSymptoms]);
 
   // Filter doctors
-  const filteredDoctors = doctors.filter((d) =>
-    specializations.includes(d.specialization)
+  // const filteredDoctors = doctors.filter((d) =>
+  //   specializations.includes(d.specialization)
+  // );
+
+  const filteredDoctors = doctors.filter((d) => {
+  if (selectedSymptoms.length === 0) return true;
+
+  return selectedSymptoms.some((symptom) =>
+    SYMPTOM_MAP[symptom]?.includes(d.specialization)
   );
+});
 
   const timeSlots = ["10:00", "11:00", "12:00", "14:00"];
 
@@ -100,8 +112,10 @@ console.log("Current user:", user);
 
       problem,
 
+      doctorId: selectedDoctor._id,
+      doctorEmail: selectedDoctor.email,
       doctor: selectedDoctor.name,
-      doctorId: selectedDoctor.name,
+
 
       date,
       time,
@@ -125,113 +139,179 @@ console.log("Current user:", user);
   }
 };
 
-  return (
-    <div className="space-y-6">
+ return (
+  <div className=" mx-auto space-y-4 p-4">
 
-      <h1 className="text-2xl font-bold">Create Appointment</h1>
+    {/* Header */}
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800">
+        Book Appointment 🩺
+      </h1>
+      <p className="text-gray-500 text-sm">
+        Select symptoms and choose the best doctor
+      </p>
+    </div>
 
-      {/* Symptoms */}
+    {/* 🏷️ SYMPTOMS */}
+    <div>
+      <h2 className="font-semibold mb-2 text-gray-700">
+        Select Symptoms
+      </h2>
+
       <div className="flex flex-wrap gap-2">
         {symptomsList.map((symptom) => (
           <button
             key={symptom}
             onClick={() => toggleSymptom(symptom)}
-            className={`px-3 py-1 rounded-full ${
+            className={`px-4 py-1.5 rounded-full text-sm transition border ${
               selectedSymptoms.includes(symptom)
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
+                ? "bg-blue-600 text-white border-blue-600 shadow"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
             }`}
           >
             {symptom}
           </button>
         ))}
       </div>
+    </div>
 
-      {/* Doctors */}
-      <div className="space-y-3">
-        {filteredDoctors.map((doc) => (
-          <div
-            key={doc.name}
-            className="flex justify-between border p-3 rounded"
-          >
-            <span>{doc.name}</span>
-            <button
-              onClick={() => setSelectedDoctor(doc)}
-              className="bg-blue-600 text-white px-3 py-1 rounded"
+    {/* 👨‍⚕️ DOCTORS */}
+    <div>
+      <h2 className="font-semibold mb-2 text-gray-700">
+        Available Doctors
+      </h2>
+
+      {filteredDoctors.length === 0 ? (
+        <p className="text-gray-500 text-sm">
+          No doctors found for selected symptoms
+        </p>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+
+          {filteredDoctors.map((doc) => (
+            <div
+              key={doc._id}
+              className={`p-4 rounded-2xl border bg-white shadow-sm hover:shadow-lg transition flex justify-between items-center ${
+                        selectedDoctor?._id === doc._id
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : ""
+                      }`}
             >
-              Book
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className="flex items-center gap-3">
 
-      {/* Modal */}
-      {selectedDoctor && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+                <ProfileImage
+                  src={doc.profileImage}
+                  name={doc.name}
+                />
 
-          <div className="bg-white p-6 rounded w-96 space-y-4">
-            <h2 className="font-semibold">
-              Book with {selectedDoctor.name}
-            </h2>
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    {doc.name}
+                  </p>
 
-              {/* Patient Name */}
-            <input
-                type="text"
-                placeholder="Patient Name"
-                className="w-full border p-2 rounded"
-                value={user?.name || ""}
-                //onChange={(e) => setPatientName(e.target.value)}
-                disabled
-            />
+                  <p className="text-sm text-gray-500">
+                    {doc.specialization}
+                  </p>
 
-            {/* Problem */}
-            <textarea
-                placeholder="Describe problem..."
-                className="w-full border p-2 rounded"
-                value={problem}
-                onChange={(e) => setProblem(e.target.value)}
-            />
+                  <p className="text-xs text-gray-400">
+                    {doc.experience || 0} yrs experience
+                  </p>
+                </div>
+              </div>
 
-            <input
-              type="date"
-              className="w-full border p-2"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-
-            <div className="flex gap-2 flex-wrap">
-              {timeSlots.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTime(t)}
-                  className={`px-3 py-1 border ${
-                    time === t ? "bg-blue-600 text-white" : ""
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setSelectedDoctor(null)}>
-                Cancel
+              <button
+                onClick={() => setSelectedDoctor(doc)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
+              >
+                {selectedDoctor?._id === doc._id
+                  ? "Selected"
+                  : "Book"}
               </button>
-            <button
-                onClick={handleBook}
-                disabled={!user?.userId}
-                className={`px-3 py-1 text-white rounded ${
-                    !user?.userId
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
-                >
-                {user?.userId ? "Confirm" : "Loading..."}
-                </button>
             </div>
-          </div>
+          ))}
+
         </div>
       )}
     </div>
-  );
+
+    {/* 👨‍⚕️ SELECTED */}
+    {selectedDoctor && (
+      <div className="p-3 bg-green-100 text-green-700 rounded-lg">
+        Selected Doctor: <b>{selectedDoctor.name}</b>
+      </div>
+    )}
+
+    {/* MODAL */}
+    {selectedDoctor && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+        <div className="bg-white p-6 rounded-2xl w-96 space-y-4 shadow-xl">
+
+          <h2 className="text-lg font-semibold">
+            Book with {selectedDoctor.name}
+          </h2>
+
+          <input
+            type="text"
+            value={user?.name || ""}
+            className="w-full border p-2 rounded bg-gray-100"
+            disabled
+          />
+
+          <textarea
+            placeholder="Describe problem..."
+            className="w-full border p-2 rounded"
+            value={problem}
+            onChange={(e) => setProblem(e.target.value)}
+          />
+
+          <input
+            type="date"
+            className="w-full border p-2 rounded"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+
+          <div className="flex gap-2 flex-wrap">
+            {timeSlots.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTime(t)}
+                className={`px-3 py-1 rounded border ${
+                  time === t
+                    ? "bg-blue-600 text-white"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setSelectedDoctor(null)}
+              className="text-gray-600"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleBook}
+              disabled={!user?.userId}
+              className={`px-4 py-2 rounded text-white ${
+                !user?.userId
+                  ? "bg-gray-400"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              Confirm
+            </button>
+          </div>
+
+        </div>
+      </div>
+    )}
+  </div>
+);
 }

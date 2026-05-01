@@ -12,6 +12,7 @@ export async function POST(req: Request) {
 
     const exists = await Appointment.findOne({
       doctorId: body.doctorId,
+      doctor: body.doctorName,
       date: body.date,
       time: body.time,
       status: { $ne: "cancelled" },
