@@ -125,7 +125,7 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
 
     console.log("Saved:", res.data);
 
-    toast.success("Appointment booked!");
+    toast.success("Email sent to doctor successfully! he will approve your appointment soon.");
     router.push("/appointments"); // redirect to appointments list
 
     // reset

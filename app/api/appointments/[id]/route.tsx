@@ -1,6 +1,13 @@
 import { connectDB } from "@/lib/mongodb";
 import Appointment from "@/models/Appointment";
 import mongoose from "mongoose";
+import {
+  patientTemplate,
+  doctorTemplate,
+  adminTemplate,
+} from "@/lib/emailTemplates";
+
+import { sendMail } from "@/lib/email";
 
 export async function PATCH(
   req: Request,
