@@ -81,7 +81,7 @@ export default function AppointmentsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="bg-gray-100 p-6 space-y-6">
 
       {/* 👤 PROFILE CARD */}
       <div className="bg-white p-5 rounded-xl shadow flex items-center gap-4">

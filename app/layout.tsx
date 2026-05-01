@@ -37,6 +37,13 @@
 
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Health App",
+  description: "A simple health app built with Next.js",
+};
+
 
 export default function RootLayout({
   children,

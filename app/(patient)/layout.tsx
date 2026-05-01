@@ -38,7 +38,7 @@ export default function PatientLayout({ children }: any) {
            <div className="flex-1">
              {/* <Navbar user={user} /> */}
              <Navbar />
-             <main className="p-6 bg-gray-100 min-h-screen">
+             <main className="p-6 min-h-screen">
                {children}
              </main>
            </div>

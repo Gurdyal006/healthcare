@@ -47,3 +47,5 @@ export default function StatCard({ title, value }: Props) {
     </div>
   );
 }
+
+

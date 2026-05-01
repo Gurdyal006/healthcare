@@ -15,16 +15,10 @@ export async function GET() {
     return Response.json({ user: {
       userId: user.userId,
       role: user.role,
-      name: user.name,    
+      name: user.name,
+
     } });
-  //   return Response.json({
-  // message: "Login successful",
-  // user: {
-  //   userId: user._id,
-  //   role: user.role,
-  //   name: user.name,
-  // },
-// });
+ 
   } catch {
     return Response.json({ message: "Unauthorized" }, { status: 401 });
   }
