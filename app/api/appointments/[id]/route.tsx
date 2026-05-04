@@ -24,10 +24,27 @@ export async function PATCH(
     }
 
     const updated = await Appointment.findByIdAndUpdate(id, body, {
-      new: true,
+      returnDocument: "after",
     });
 
+
+    if (!updated) {
+      return Response.json({ error: "Appointment not found" }, { status: 404 });
+    }
+
+    console.log("Updated appointment:", updated);    
+
+    // send email safely
+    sendMail({
+      to: updated?.patientEmail,
+      subject: "Appointment Confirmed ✅",
+      html: patientTemplate(updated),
+    }).catch((err) => console.error("Email failed:", err));
+
+
+
     return Response.json(updated);
+    
   } catch (err: any) {
     return Response.json({ message: err.message }, { status: 500 });
   }

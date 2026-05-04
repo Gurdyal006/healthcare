@@ -107,8 +107,9 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
 
   try {
     const res = await axiosInstance.post("/api/appointments", {
-      patientName: user.name,      // ✅ auto fill
-      patientId: user.userId,      // ✅ correct
+      patientName: user.name,      //  auto fill
+      patientId: user.userId,      //  correct
+      patientEmail: user.email,    //  auto fill
 
       problem,
 
