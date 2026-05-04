@@ -4,6 +4,7 @@ const AppointmentSchema = new mongoose.Schema(
   {
     patientName: String,
     patientId: String,
+    patientEmail: String,
 
     problem: String,
 

@@ -80,7 +80,7 @@ export default function DashboardPage() {
         <thead className="bg-gray-50 text-gray-600 sticky top-0">
           <tr>
             <th className="p-4 text-left">Patient</th>
-            <th className="text-left">Doctor</th>
+            {/* <th className="text-left">Doctor</th> */}
             <th className="text-left">Date</th>
             <th className="text-left">Status</th>
           </tr>
@@ -112,9 +112,9 @@ export default function DashboardPage() {
               </td>
 
               {/* DOCTOR */}
-              <td className="text-gray-700">
+              {/* <td className="text-gray-700">
                 {a.doctor}
-              </td>
+              </td> */}
 
               {/* DATE */}
               <td>
