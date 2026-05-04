@@ -76,25 +76,59 @@ const fetchUser = async () => {
   };
 
   const handleReschedule = async () => {
-    if (!newDate || !newTime) {
-      toast.error("Select date & time");
-      return;
-    }
+  if (!newDate || !newTime) {
+    toast.error("Select date & time");
+    return;
+  }
 
-    try {
-      await axios.patch(`/api/appointments/${rescheduleData._id}`, {
-        date: newDate,
-        time: newTime,
-        status: "rescheduled",
-      });
+  // ❗ prevent past date
+  const selectedDateTime = new Date(`${newDate}T${newTime}`);
+  if (selectedDateTime < new Date()) {
+    toast.error("Cannot select past time");
+    return;
+  }
 
-      toast.success("Rescheduled");
-      fetchAppointments();
-      setRescheduleData(null);
-    } catch {
-      toast.error("Failed");
-    }
-  };
+  try {
+    await axios.patch(`/api/appointments/${rescheduleData._id}`, {
+      date: newDate,
+      time: newTime,
+      status: "rescheduled",
+    });
+
+    toast.success("Appointment rescheduled ✅");
+
+    fetchAppointments();
+
+    // reset state
+    setRescheduleData(null);
+    setNewDate("");
+    setNewTime("");
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Reschedule failed");
+  }
+};
+  // const handleReschedule = async () => {
+  //   if (!newDate || !newTime) {
+  //     toast.error("Select date & time");
+  //     return;
+  //   }
+
+  //   try {
+  //     await axios.patch(`/api/appointments/${rescheduleData._id}`, {
+  //       date: newDate,
+  //       time: newTime,
+  //       status: "rescheduled",
+  //     });
+
+  //     toast.success("Rescheduled");
+  //     fetchAppointments();
+  //     setRescheduleData(null);
+  //   } catch {
+  //     toast.error("Failed");
+  //   }
+  // };
 
 return (
   <div className="bg-gray-100 min-h-screen p-6 space-y-6">
@@ -214,7 +248,11 @@ return (
                     </button>
 
                     <button
-                      onClick={() => setRescheduleData(a)}
+                      onClick={() => {
+                                setRescheduleData(a);
+                                setNewDate(a.date);
+                                setNewTime(a.time);
+                              }}
                       className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-xs rounded-lg"
                     >
                       Reschedule
@@ -231,6 +269,46 @@ return (
         </div>
       )}
     </div>
+
+{rescheduleData && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-xl w-[350px] space-y-4 shadow-xl">
+
+      <h2 className="text-lg font-semibold">Reschedule Appointment</h2>
+
+      <input
+        type="date"
+        className="w-full border p-2 rounded"
+        value={newDate}
+        onChange={(e) => setNewDate(e.target.value)}
+      />
+
+      <input
+        type="time"
+        className="w-full border p-2 rounded"
+        value={newTime}
+        onChange={(e) => setNewTime(e.target.value)}
+      />
+
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setRescheduleData(null)}
+          className="px-3 py-1 bg-gray-200 rounded"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleReschedule}
+          className="px-3 py-1 bg-blue-600 text-white rounded"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
   </div>
 );
 }
