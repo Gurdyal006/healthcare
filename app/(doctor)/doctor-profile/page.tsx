@@ -15,6 +15,8 @@ export default function DoctorProfilePage() {
   const [newTime, setNewTime] = useState("");
   const { data: session, status } = useSession();
 
+ 
+
   useEffect(() => {
     // fetchUser();
        if (session?.user) {
@@ -149,10 +151,22 @@ const canStartMeeting = (appointmentDateTime: string) => {
   return diff >= 0 && diff <= 30;
 };
 
+// const startMeeting = async (a: any) => {
+//   try {
+//     await axios.patch(`/api/appointments/${a._id}`, {
+//       meetingStarted: true,
+//     });
+
+//     window.location.href = `/call/${a._id}`;
+//   } catch {
+//     toast.error("Failed to start meeting");
+//   }
+// };
 const startMeeting = async (a: any) => {
   try {
     await axios.patch(`/api/appointments/${a._id}`, {
       meetingStarted: true,
+      callStartedAt: new Date(), // ✅ ADD
     });
 
     window.location.href = `/call/${a._id}`;
@@ -173,16 +187,16 @@ const startMeeting = async (a: any) => {
           />
 
           <div>
-            <h2 className="text-2xl font-bold">{user.name}</h2>
-            <p className="text-purple-100">{user.specialization || "Doctor"}</p>
-            <p className="text-xs text-purple-200">{user.email}</p>
+            <h2 className="text-2xl font-bold">{user?.name}</h2>
+            <p className="text-purple-100">{user?.specialization || "Doctor"}</p>
+            <p className="text-xs text-purple-200">{user?.email}</p>
 
             <div className="flex gap-3 mt-2 text-sm">
               <span className="bg-white/20 px-3 py-1 rounded-full">
-                🎯 {user.experience || 0} yrs
+                🎯 {user?.experience || 0} yrs
               </span>
               <span className="bg-white/20 px-3 py-1 rounded-full">
-                👤 {user.gender || "N/A"}
+                👤 {user?.gender || "N/A"}
               </span>
             </div>
           </div>
@@ -249,6 +263,7 @@ const startMeeting = async (a: any) => {
                   ${a.status === "cancelled" && "bg-red-100 text-red-600"}
                   ${a.status === "rescheduled" && "bg-blue-100 text-blue-600"}
                   ${a.status === "pending" && "bg-yellow-100 text-yellow-600"}
+                  ${a.status === "completed" && "bg-green-100 text-green-600"}
                 `}
                   >
                     {a.status}

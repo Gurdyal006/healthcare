@@ -9,23 +9,26 @@ import BasicStat from "@/components/BasicStat";
 import Loader from "@/components/Loader";
 import { useSession } from "next-auth/react";
 
+
 export default function PatientProfile() {
   const [user, setUser] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const { data: session, status } = useSession();
+    const { data: session, status } = useSession();
+
 
   const filteredAppointments = appointments
     .filter((a) => a.problem.toLowerCase().includes(search.toLowerCase()))
     .filter((a) => (filter === "all" ? true : a.status === filter));
 
-  useEffect(() => {
-    if (session?.user) {
-      setUser(session.user);
-    }
-    fetchAppointments();
-  }, [session]);
+     useEffect(() => {
+        if (session?.user) {
+          setUser(session.user);
+        }
+         fetchAppointments();
+      }, [session]);
+
 
   const fetchAppointments = async () => {
     try {
@@ -151,6 +154,7 @@ export default function PatientProfile() {
                 ${a.status === "cancelled" && "bg-red-100 text-red-600"}
                 ${a.status === "rescheduled" && "bg-blue-100 text-blue-600"}
                 ${a.status === "pending" && "bg-yellow-100 text-yellow-600"}
+                ${a.status === "completed" && "bg-green-100 text-green-600"}
               `}
                 >
                   {a.status}
@@ -160,7 +164,7 @@ export default function PatientProfile() {
                   #{a._id?.slice(-4)}
                 </span>
               </div>
-              {/* {a.status === "confirmed" &&
+              {a.status === "confirmed" &&
                 (a.meetingStarted || canStartMeeting(a.appointmentDateTime)) ? (
                   <button
                     onClick={() => window.location.href = `/call/${a._id}`}
@@ -173,7 +177,7 @@ export default function PatientProfile() {
                     <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
                     Meeting starts at {a.time}
                   </div>
-                )} */}
+                )}
 
               {a.callEnded ? (
                 <span className="text-gray-400 text-sm">
