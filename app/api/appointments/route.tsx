@@ -10,7 +10,6 @@ import {
 } from "@/lib/emailTemplates";
 
 import { sendMail } from "@/lib/email";
-import toast from "react-hot-toast";
 
 // CREATE
 export async function POST(req: Request) {
@@ -24,6 +23,7 @@ export async function POST(req: Request) {
       doctor: body.doctor,
       date: body.date,
       time: body.time,
+      appointmentDateTime: new Date(`${body.date}T${body.time}:00`),
       status: { $ne: "cancelled" },
     });
 
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         }),
       ]);
     } catch (e) {
-      toast.error("Email failed:");
+      console.log("Email failed:");
     }
 
     return Response.json(saved);
@@ -74,11 +74,11 @@ export async function POST(req: Request) {
 }
 
 // GET (ROLE BASED)
+
 export async function GET() {
   try {
     await connectDB();
 
-    // ✅ get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -86,28 +86,65 @@ export async function GET() {
       return Response.json({ message: "No token" }, { status: 401 });
     }
 
-    // ✅ verify user
     const user: any = jwt.verify(token, process.env.JWT_SECRET!);
 
-    let data;
+    let query: any = {};
 
     // ✅ ROLE BASED FILTER
-      if (user.role === "admin") {
-      // ✅ FULL SYSTEM ACCESS
-      data = await Appointment.find().sort({ createdAt: -1 });
-
+    if (user.role === "admin") {
+      query = {}; // all
     } else if (user.role === "doctor") {
-      data = await Appointment.find({
-        doctorId: user.userId,
-      }).sort({ createdAt: -1 });
+      query = { doctorId: user.userId };
     } else {
-      data = await Appointment.find({
-        patientId: user.userId,
-      }).sort({ createdAt: -1 });
+      query = { patientId: user.userId };
     }
+
+    const data = await Appointment.find(query)
+        // .select(
+        //   "patientName doctor date time status meetingStarted createdAt problem"
+        // )
+      .sort({ createdAt: -1 })
+      .lean(); 
 
     return Response.json(data);
   } catch (err: any) {
     return Response.json({ message: err.message }, { status: 500 });
   }
 }
+// export async function GET() {
+//   try {
+//     await connectDB();
+
+//     // ✅ get token from cookies
+//     const cookieStore = await cookies();
+//     const token = cookieStore.get("token")?.value;
+
+//     if (!token) {
+//       return Response.json({ message: "No token" }, { status: 401 });
+//     }
+
+//     // ✅ verify user
+//     const user: any = jwt.verify(token, process.env.JWT_SECRET!);
+
+//     let data;
+
+//     // ✅ ROLE BASED FILTER
+//       if (user.role === "admin") {
+//       // ✅ FULL SYSTEM ACCESS
+//       data = await Appointment.find().sort({ createdAt: -1 });
+
+//     } else if (user.role === "doctor") {
+//       data = await Appointment.find({
+//         doctorId: user.userId,
+//       }).sort({ createdAt: -1 });
+//     } else {
+//       data = await Appointment.find({
+//         patientId: user.userId,
+//       }).sort({ createdAt: -1 });
+//     }
+
+//     return Response.json(data);
+//   } catch (err: any) {
+//     return Response.json({ message: err.message }, { status: 500 });
+//   }
+// }

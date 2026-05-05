@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import ProfileImage from "@/components/ProfileImage";
 import StatCard from "@/components/StatCard";
 import BasicStat from "@/components/BasicStat";
+import Loader from "@/components/Loader";
 
 export default function PatientProfile() {
   const [user, setUser] = useState<any>(null);
@@ -44,7 +45,7 @@ const filteredAppointments = appointments
     }
   };
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  if (!user) return <Loader />;
 
   // ✅ PATIENT APPOINTMENTS
   // const myAppointments = appointments.filter(
@@ -176,8 +177,23 @@ return (
               </span>
 
             </div>
+                {a.meetingStarted ? (
+                  <button
+                    onClick={() => window.location.href = `/call/${a._id}`}
+                    className="bg-green-600 text-white px-3 py-1 rounded"
+                  >
+                    🎥 Join Video Consultation
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                    Your doctor will join shortly. Please be ready.
+                  </div>
+                )}
 
           </div>
+
+          
         ))}
 
       </div>

@@ -5,6 +5,7 @@ import axios from "@/lib/axios";
 import toast from "react-hot-toast";
 import ProfileImage from "@/components/ProfileImage";
 import BasicStat from "@/components/BasicStat";
+import Loader from "@/components/Loader";
 
 export default function DoctorProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -13,6 +14,7 @@ export default function DoctorProfilePage() {
   const [rescheduleData, setRescheduleData] = useState<any>(null);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [showReject, setShowReject] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUser();
@@ -51,7 +53,7 @@ const fetchUser = async () => {
     }
   };
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  if (!user) return <Loader />;
 
   // ✅ doctor only appointments
   const myAppointments = appointments.filter(
@@ -129,6 +131,36 @@ const fetchUser = async () => {
   //     toast.error("Failed");
   //   }
   // };
+
+// const canStartMeeting = (appointmentDateTime: string) => {
+//   const now = new Date();
+//   const appt = new Date(appointmentDateTime);
+
+//   const diff = (appt.getTime() - now.getTime()) / 60000;
+
+//   return diff <= 10 && diff >= -30;
+// };
+
+const canStartMeeting = (appointmentDateTime: string) => {
+  const now = new Date();
+  const appt = new Date(appointmentDateTime);
+
+  const diff = (now.getTime() - appt.getTime()) / 60000;
+
+  return diff >= 0 && diff <= 30;
+};
+
+const startMeeting = async (a: any) => {
+  try {
+    await axios.patch(`/api/appointments/${a._id}`, {
+      meetingStarted: true,
+    });
+
+    window.location.href = `/call/${a._id}`;
+  } catch {
+    toast.error("Failed to start meeting");
+  }
+};
 
 return (
   <div className="bg-gray-100 min-h-screen p-6 space-y-6">
@@ -230,41 +262,69 @@ return (
                   {a.status}
                 </span>
 
-                {a.status === "pending" && (
-                  <div className="flex gap-2">
+                <div className="flex gap-2">
 
-                    <button
-                      onClick={() => updateStatus(a._id, "confirmed")}
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs rounded-lg"
-                    >
-                      Accept
-                    </button>
+                      {a.status === "pending" && (
+                        <>
+                           {/* ✅ ACCEPT */}
+                              <button
+                                onClick={() => updateStatus(a._id, "confirmed")}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                                          bg-green-600 hover:bg-green-700 text-white 
+                                          text-sm font-medium transition duration-200 shadow"
+                              >
+                               Accept
+                              </button>
 
-                    <button
-                      onClick={() => updateStatus(a._id, "cancelled")}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-xs rounded-lg"
-                    >
-                      Reject
-                    </button>
+                              {/* ❌ REJECT */}
+                              <button
+                                onClick={() => setShowReject(a._id)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                                          bg-red-600 hover:bg-red-700 text-white 
+                                          text-sm font-medium transition duration-200 shadow"
+                              >
+                                Reject
+                              </button>
+                              {/* <button
+                                onClick={() => {
+                                  if (confirm("Are you sure you want to reject this appointment?")) {
+                                    updateStatus(a._id, "cancelled");
+                                  }
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                                          bg-red-600 hover:bg-red-700 text-white 
+                                          text-sm font-medium transition duration-200 shadow"
+                              >
+                                 Reject
+                              </button> */}
+                        </>
+                      )}
 
-                    <button
-                      onClick={() => {
-                                setRescheduleData(a);
-                                setNewDate(a.date);
-                                setNewTime(a.time);
-                              }}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-xs rounded-lg"
-                    >
-                      Reschedule
-                    </button>
+                  
+                      {a.status === "confirmed" &&
+                        canStartMeeting(a.appointmentDateTime) && (
+                          <button
+                            onClick={() => startMeeting(a)}
+                            className="bg-indigo-600 text-white px-3 py-1 rounded"
+                          >
+                            🎥 Start Meeting
+                          </button>
+                      )}
+                      {a.status === "confirmed" &&
+                       !canStartMeeting(a.appointmentDateTime) && (
+                        <p className="text-xs text-gray-400">
+                          Meeting starts at {a.time}
+                        </p>
+                      )}
 
-                  </div>
-                )}
+                    </div>
+                     
 
               </div>
 
             </div>
           ))}
+          
 
         </div>
       )}
@@ -305,6 +365,57 @@ return (
           Confirm
         </button>
       </div>
+    </div>
+  </div>
+)}
+
+
+{showReject && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+
+    <div className="bg-white rounded-2xl shadow-xl w-[320px] p-6 text-center animate-[fadeIn_0.2s_ease]">
+
+      {/* Icon */}
+      <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-full bg-red-100 text-red-600 text-xl">
+        ⚠️
+      </div>
+
+      {/* Title */}
+      <h2 className="text-lg font-semibold text-gray-800 mb-1">
+        Reject Appointment
+      </h2>
+
+      {/* Description */}
+      <p className="text-sm text-gray-500 mb-5">
+        Are you sure you want to reject this appointment? This action cannot be undone.
+      </p>
+
+      {/* Actions */}
+      <div className="flex justify-center gap-3">
+
+        {/* Cancel */}
+        <button
+          onClick={() => setShowReject(null)}
+          className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 
+                     hover:bg-gray-100 transition text-sm font-medium"
+        >
+          Cancel
+        </button>
+
+        {/* Reject */}
+        <button
+          onClick={async () => {
+            await updateStatus(showReject, "cancelled");
+            setShowReject(null);
+          }}
+          className="px-4 py-2 rounded-lg bg-red-600 text-white 
+                     hover:bg-red-700 transition text-sm font-medium shadow"
+        >
+          Reject
+        </button>
+
+      </div>
+
     </div>
   </div>
 )}
