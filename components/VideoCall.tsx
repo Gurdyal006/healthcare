@@ -1,7 +1,9 @@
 "use client";
 
+import axios from "@/lib/axios";
 import axiosInstance from "@/lib/axios";
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function VideoCall({ appointmentId, userId }: any) {
   const localRef = useRef<HTMLDivElement>(null);
@@ -11,6 +13,8 @@ export default function VideoCall({ appointmentId, userId }: any) {
   const [tracks, setTracks] = useState<any[]>([]);
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+const [appointment, setAppointment] = useState<any>(null);
 
   useEffect(() => {
     let rtcClient: any;
@@ -63,6 +67,41 @@ export default function VideoCall({ appointmentId, userId }: any) {
     };
   }, [appointmentId, userId]);
 
+  useEffect(() => {
+  const fetchAppointment = async () => {
+    const res = await fetch(`/api/appointments/${appointmentId}`);
+    const data = await res.json();
+    setAppointment(data);
+  };
+
+  fetchAppointment();
+}, [appointmentId]);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setSeconds((prev) => prev + 1);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
+
+useEffect(() => {
+  if (!appointment?.callStartedAt) return;
+
+  const interval = setInterval(async () => {
+    const now = new Date();
+    const start = new Date(appointment.callStartedAt);
+
+    const diff = (now.getTime() - start.getTime()) / 60000;
+
+    if (diff >= 30) {
+      await handleEndCall();
+    }
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, [appointment]);
+
   // 🎙 MUTE
   const toggleMute = async () => {
     if (!tracks[0]) return;
@@ -84,8 +123,30 @@ export default function VideoCall({ appointmentId, userId }: any) {
     window.location.href = "/profile"; // redirect
   };
 
+  console.log("appointment:", appointment);
+  console.log("appoinmentId", appointmentId);
+  const handleEndCall = async () => {
+  try {
+    //await axiosInstance.patch(`/api/appointments/${appointmentId}/end-call`);
+    await axios.patch(`/api/appointments/${appointmentId}/end-call`);
+
+    // stop tracks
+    tracks.forEach((t: any) => t.stop());
+
+    await client.leave();
+
+    window.location.href = "/profile";
+  } catch {
+    toast.error("Failed to end call");
+  }
+};
+
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white">
+      <div className="absolute top-4 left-4 text-white bg-black/50 px-3 py-1 rounded">
+  ⏱ {Math.floor(seconds / 60)}:
+  {(seconds % 60).toString().padStart(2, "0")}
+</div>
 
       {/* VIDEO GRID */}
       <div className="flex-1 grid grid-cols-2 gap-4 p-4">
@@ -120,12 +181,19 @@ export default function VideoCall({ appointmentId, userId }: any) {
           {cameraOff ? "Camera On" : "Camera Off"}
         </button>
 
-        <button
+        {/* <button
           onClick={endCall}
           className="px-6 py-2 bg-red-600 rounded-full"
         >
           End Call
-        </button>
+        </button> */}
+
+        <button
+            onClick={endCall}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+          >
+            🔴 End Call
+          </button>
 
       </div>
     </div>

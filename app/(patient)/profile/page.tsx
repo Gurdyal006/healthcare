@@ -52,6 +52,15 @@ const filteredAppointments = appointments
   //   (a) => a.patientId === user.userId
   // );
 
+  const canStartMeeting = (appointmentDateTime: string) => {
+  const now = new Date();
+  const appt = new Date(appointmentDateTime);
+
+  const diff = (now.getTime() - appt.getTime()) / 60000;
+
+  return diff >= 0 && diff <= 30;
+};
+
 return (
   <div className="bg-gray-100 min-h-screen p-6 space-y-6">
 
@@ -177,7 +186,8 @@ return (
               </span>
 
             </div>
-                {a.meetingStarted ? (
+              {/* {a.status === "confirmed" &&
+                (a.meetingStarted || canStartMeeting(a.appointmentDateTime)) ? (
                   <button
                     onClick={() => window.location.href = `/call/${a._id}`}
                     className="bg-green-600 text-white px-3 py-1 rounded"
@@ -187,14 +197,36 @@ return (
                 ) : (
                   <div className="flex items-center gap-2 text-gray-500 text-sm">
                     <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-                    Your doctor will join shortly. Please be ready.
+                    Meeting starts at {a.time}
                   </div>
+                )} */}
+
+                {a.callEnded ? (
+                  <span className="text-gray-400 text-sm">
+                    Consultation completed
+                  </span>
+                ) : a.meetingStarted ? (
+                  <button
+                    onClick={() => window.location.href = `/call/${a._id}`}
+                    className="bg-green-600 text-white px-3 py-1 rounded"
+                  >
+                    🎥 Join Video Consultation
+                  </button>
+                ) : (
+                  <span className="text-sm text-gray-500">
+                    Waiting for doctor...
+                  </span>
                 )}
+                <p className="text-xs text-gray-400">
+                  Duration: {a.callDuration} min
+                </p>
 
           </div>
+          
 
           
         ))}
+        
 
       </div>
     )}

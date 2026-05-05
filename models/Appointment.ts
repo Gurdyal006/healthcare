@@ -28,7 +28,11 @@ const AppointmentSchema = new mongoose.Schema(
       appointmentDateTime: {
         type: Date,
         required: true,
-      }
+      },
+      callStartedAt: { type: Date },
+      callEnded: { type: Boolean, default: false },
+      callEndedAt: { type: Date },
+      callDuration: { type: Number }, // in minutes
   },
   { timestamps: true }
 );
