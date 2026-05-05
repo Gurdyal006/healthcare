@@ -22,13 +22,13 @@ export default function Sidebar({ role }: Props) {
 
   const doctorMenu = [
     { name: "Dashboard", path: "/dashboard" },
-    { name: "Profile", path: "/doctor-profile" },
+    { name: "Appointments", path: "/doctor-profile" },
     //{ name: "Appointments", path: "/doctor-appointments" },
   ];
 
   const patientMenu = [
-    { name: "Profile", path: "/profile" },
-    { name: "My Appointments", path: "/appointments" },
+    { name: "My Appointments", path: "/profile" },
+    //{ name: "Appointments", path: "/appointments" },
     //{ name: "Create Appointment", path: "/create-appointment" },
   ];
 

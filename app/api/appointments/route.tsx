@@ -34,6 +34,15 @@ export async function POST(req: Request) {
       );
     }
 
+    const appointmentTime = new Date(`${body.date}T${body.time}:00`);
+
+      if (appointmentTime < new Date()) {
+        return Response.json(
+          { message: "Cannot book past time" },
+          { status: 400 }
+        );
+      }
+
     console.log("Creating appointment with data:", body);
     const saved = await Appointment.create(body);
     console.log("Appointment created successfully:", saved);
