@@ -16,6 +16,8 @@ export default function DoctorProfilePage() {
   const [newTime, setNewTime] = useState("");
   const [showReject, setShowReject] = useState<string | null>(null);
 
+ 
+
   useEffect(() => {
     fetchUser();
     fetchAppointments();
@@ -150,10 +152,22 @@ const canStartMeeting = (appointmentDateTime: string) => {
   return diff >= 0 && diff <= 30;
 };
 
+// const startMeeting = async (a: any) => {
+//   try {
+//     await axios.patch(`/api/appointments/${a._id}`, {
+//       meetingStarted: true,
+//     });
+
+//     window.location.href = `/call/${a._id}`;
+//   } catch {
+//     toast.error("Failed to start meeting");
+//   }
+// };
 const startMeeting = async (a: any) => {
   try {
     await axios.patch(`/api/appointments/${a._id}`, {
       meetingStarted: true,
+      callStartedAt: new Date(), // ✅ ADD
     });
 
     window.location.href = `/call/${a._id}`;
