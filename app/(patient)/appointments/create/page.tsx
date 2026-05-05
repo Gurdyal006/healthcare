@@ -6,6 +6,8 @@ import { useState, useMemo, useEffect } from "react";
 import toast from "react-hot-toast";
 import { SYMPTOM_MAP } from "@/lib/constants";
 import ProfileImage from "@/components/ProfileImage";
+import BookingModal from "@/components/BookingModal";
+import generateTimeSlots from "@/lib/GenerateTimeSlot";
 
 type Doctor = {
   _id: string;
@@ -25,38 +27,39 @@ export default function CreateAppointmentPage() {
   const [problem, setProblem] = useState("");
   const [user, setUser] = useState<any>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+ const [appointments, setAppointments] = useState<Appointment[]>([]);
 
 
   const router = useRouter();
 
+  type Appointment = {
+  doctorId: string;
+  date: string;
+  time: string;
+  status: string;
+};
+
 useEffect(() => {
-  const fetchUser = async () => {
+  const loadData = async () => {
     try {
-      const res = await axiosInstance.get("/api/auth/me");
+      const [userRes, apptRes, doctorRes] = await Promise.all([
+        axiosInstance.get("/api/auth/me"),
+        axiosInstance.get("/api/appointments"),
+        axiosInstance.get("/api/doctors"),
+      ]);
 
-      console.log("USER:", res.data);
+      setUser(userRes.data.user);
+      setAppointments(apptRes.data || []);
+      setDoctors(doctorRes.data || []);
 
-      setUser(res.data.user);
     } catch (err) {
-      console.error("User fetch error:", err);
+      console.error("Load error:", err);
+      toast.error("Failed to load data");
     }
   };
 
-  fetchUser();
-}, []);
-console.log("Current user:", user);
-
-useEffect(() => {
-  const fetchDoctors = async () => {
-    try {
-      const res = await axiosInstance.get("/api/doctors");
-      setDoctors(res.data || []);
-    } catch {
-      toast.error("Failed to load doctors");
-    }
-  };
-
-  fetchDoctors();
+  loadData();
 }, []);
 
 const symptomsList = Object.keys(SYMPTOM_MAP);
@@ -78,10 +81,7 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
     return Array.from(set);
   }, [selectedSymptoms]);
 
-  // Filter doctors
-  // const filteredDoctors = doctors.filter((d) =>
-  //   specializations.includes(d.specialization)
-  // );
+
 
   const filteredDoctors = doctors.filter((d) => {
   if (selectedSymptoms.length === 0) return true;
@@ -91,7 +91,19 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
   );
 });
 
-  const timeSlots = ["10:00", "11:00", "12:00", "14:00"];
+  //const timeSlots = ["10:00", "11:00", "12:00", "14:00", "15:00", "15:30", "16:00"];
+
+const timeSlots = generateTimeSlots(9, 18);
+
+const bookedSlots = appointments
+  .filter((a) => {
+    return (
+      a.doctorId === selectedDoctor?._id &&
+      a.date === date &&
+      a.status !== "cancelled"
+    );
+  })
+  .map((a) => a.time);
 
   // Booking API call
   const handleBook = async () => {
@@ -106,6 +118,9 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
   }
 
   try {
+
+  setBookingLoading(true);
+
     const res = await axiosInstance.post("/api/appointments", {
       patientName: user.name,      //  auto fill
       patientId: user.userId,      //  correct
@@ -120,6 +135,7 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
 
       date,
       time,
+      appointmentDateTime: new Date(`${date}T${time}:00`),
       symptoms: selectedSymptoms,
       status: "pending",
     });
@@ -137,6 +153,8 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
     setTime("");
   } catch (err: any) {
     toast.error(err.response?.data?.message || "Error");
+  }finally {
+    setBookingLoading(false);
   }
 };
 
@@ -243,76 +261,22 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
     )}
 
     {/* MODAL */}
-    {selectedDoctor && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-        <div className="bg-white p-6 rounded-2xl w-96 space-y-4 shadow-xl">
-
-          <h2 className="text-lg font-semibold">
-            Book with {selectedDoctor.name}
-          </h2>
-
-          <input
-            type="text"
-            value={user?.name || ""}
-            className="w-full border p-2 rounded bg-gray-100"
-            disabled
-          />
-
-          <textarea
-            placeholder="Describe problem..."
-            className="w-full border p-2 rounded"
-            value={problem}
-            onChange={(e) => setProblem(e.target.value)}
-          />
-
-          <input
-            type="date"
-            className="w-full border p-2 rounded"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-
-          <div className="flex gap-2 flex-wrap">
-            {timeSlots.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTime(t)}
-                className={`px-3 py-1 rounded border ${
-                  time === t
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setSelectedDoctor(null)}
-              className="text-gray-600"
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={handleBook}
-              disabled={!user?.userId}
-              className={`px-4 py-2 rounded text-white ${
-                !user?.userId
-                  ? "bg-gray-400"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              Confirm
-            </button>
-          </div>
-
-        </div>
-      </div>
-    )}
+  <BookingModal
+      open={!!selectedDoctor}
+      onClose={() => setSelectedDoctor(null)}
+      doctor={selectedDoctor}
+      user={user}
+      problem={problem}
+      setProblem={setProblem}
+      date={date}
+      setDate={setDate}
+      time={time}
+      setTime={setTime}
+      timeSlots={timeSlots}
+      onConfirm={handleBook}
+      loading={bookingLoading}
+       bookedSlots={bookedSlots}
+    />
   </div>
 );
 }

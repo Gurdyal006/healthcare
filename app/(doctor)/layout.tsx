@@ -5,6 +5,7 @@ import axios from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
+import Loader from "@/components/Loader";
 
 export default function DoctorLayout({ children }: any) {
   const [user, setUser] = useState<any>(null);
@@ -28,7 +29,7 @@ export default function DoctorLayout({ children }: any) {
     checkUser();
   }, []);
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  if (!user) return <Loader />;
 
   return (
     <div className="flex">

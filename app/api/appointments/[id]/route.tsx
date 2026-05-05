@@ -34,12 +34,16 @@ export async function PATCH(
 
     console.log("Updated appointment:", updated);    
 
+
+    if(body.status === "confirmed") {
     // send email safely
     sendMail({
       to: updated?.patientEmail,
       subject: "Appointment Confirmed ✅",
       html: patientTemplate(updated),
     }).catch((err) => console.error("Email failed:", err));
+     }
+
 
 
 

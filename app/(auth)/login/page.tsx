@@ -62,6 +62,7 @@ console.log("Logged in user:", user);
     toast.success("Login successful 🎉");
 
   } catch (err: any) {
+    console.log("Login error:", err);
     toast.error(err.response?.data?.message || "Login failed");
   }
 
