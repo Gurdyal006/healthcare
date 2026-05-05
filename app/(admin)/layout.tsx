@@ -6,25 +6,25 @@ import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
 
 export default function AdminLayout({ children }: any) {
-  const [user, setUser] = useState<any>(null);
+  // const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await axios.get("/api/auth/me");
-        setUser(res.data.user);
-      } catch {
-        // ❌ no redirect here (middleware handles it)
-        console.log("User not found");
-      }
-    };
+  // useEffect(() => {
+  //   const loadUser = async () => {
+  //     try {
+  //       const res = await axios.get("/api/auth/me");
+  //       setUser(res.data.user);
+  //     } catch {
+  //       // ❌ no redirect here (middleware handles it)
+  //       console.log("User not found");
+  //     }
+  //   };
 
-    loadUser();
-  }, []);
+  //   loadUser();
+  // }, []);
 
-  console.log("logged adminn--", user);
+  // console.log("logged adminn--", user);
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  // if (!user) return <p className="p-6">Loading...</p>;
 
   return (
     <div className="flex">

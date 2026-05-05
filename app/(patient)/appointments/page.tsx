@@ -4,27 +4,32 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 export default function AppointmentsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-
   const [appointments, setAppointments] = useState<any[]>([]);
+  const { data: session, status } = useSession();
+
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetchUser();
-    fetchAppointments();
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get("/api/auth/me");
-      setUser(res.data.user);
-    } catch {
-      toast.error("User load failed");
+    // fetchUser();
+    if (session?.user) {
+      setUser(session.user);
     }
-  };
+    fetchAppointments();
+  }, [session]);
+
+  // const fetchUser = async () => {
+  //   try {
+  //     const res = await axios.get("/api/auth/me");
+  //     setUser(res.data.user);
+  //   } catch {
+  //     toast.error("User load failed");
+  //   }
+  // };
 
   const fetchAppointments = async () => {
     try {
@@ -39,9 +44,11 @@ export default function AppointmentsPage() {
 
   // ✅ ONLY PATIENT APPOINTMENTS
   const myAppointments = appointments.filter(
-    (a) => a.patientId === user.userId
+    (a) => a.patientId === user.id,
   );
 
+  console.log(myAppointments,appointments,'50');
+  
   // ✅ FILTER
   const filtered = myAppointments.filter((a) => {
     const matchesSearch = a.problem
@@ -71,9 +78,7 @@ export default function AppointmentsPage() {
       toast.success("Appointment cancelled");
 
       setAppointments((prev) =>
-        prev.map((a) =>
-          a._id === id ? { ...a, status: "cancelled" } : a
-        )
+        prev.map((a) => (a._id === id ? { ...a, status: "cancelled" } : a)),
       );
     } catch {
       toast.error("Cancel failed");
@@ -82,7 +87,6 @@ export default function AppointmentsPage() {
 
   return (
     <div className="bg-gray-100 p-6 space-y-6">
-
       {/* 👤 PROFILE CARD */}
       <div className="bg-white p-5 rounded-xl shadow flex items-center gap-4">
         <img
@@ -98,24 +102,19 @@ export default function AppointmentsPage() {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            My Appointments
-          </h1>
-          <p className="text-sm text-gray-500">
-            Manage your bookings
-          </p>
+          <h1 className="text-2xl font-bold text-gray-800">My Appointments</h1>
+          <p className="text-sm text-gray-500">Manage your bookings</p>
         </div>
 
-      <Link href="/appointments/create">
-       <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-         + New Appointment
-       </button>
-     </Link>
+        <Link href="/appointments/create">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            + New Appointment
+          </button>
+        </Link>
       </div>
 
       {/* FILTERS */}
       <div className="bg-white p-4 rounded-xl shadow border flex flex-col md:flex-row gap-3">
-
         <input
           type="text"
           placeholder="Search problem..."
@@ -138,7 +137,6 @@ export default function AppointmentsPage() {
       {/* TABLE */}
       <div className="bg-white rounded-2xl shadow border overflow-hidden">
         <table className="w-full text-sm">
-
           <thead className="bg-gray-50 text-gray-600 text-left">
             <tr>
               <th className="p-4">Problem</th>
@@ -152,15 +150,16 @@ export default function AppointmentsPage() {
           <tbody>
             {filtered.map((item) => (
               <tr key={item._id} className="border-t hover:bg-gray-50">
-
                 <td className="p-4 font-medium">{item.problem}</td>
                 <td>{item.doctor}</td>
-                <td>{item.date} • {item.time}</td>
+                <td>
+                  {item.date} • {item.time}
+                </td>
 
                 <td>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                      item.status
+                      item.status,
                     )}`}
                   >
                     {item.status}
@@ -168,7 +167,6 @@ export default function AppointmentsPage() {
                 </td>
 
                 <td className="text-right pr-4 space-x-2">
-
                   {item.status !== "cancelled" && (
                     <button
                       onClick={() => cancelAppointment(item._id)}
@@ -177,13 +175,10 @@ export default function AppointmentsPage() {
                       Cancel
                     </button>
                   )}
-
                 </td>
-
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
     </div>

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "@/lib/axios";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -17,60 +19,45 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
+  const { data: session, status } = useSession();
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  useEffect(() => {
+    if (status === "authenticated") {
+      const role = session?.user?.role;
+      if (role === "admin") {
+        router.push("/admin-dashboard");
+      } else if (role === "doctor") {
+        router.push("/dashboard");
+      } else {
+        router.push("/profile");
+      }
+    }
+  }, [status, session, router]);
 
-  try {
+  console.log(session, status, "24ssession");
+  console.log(status);
 
+  const handleLogin = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
 
-const res = await axios.post("/api/auth/login", form);
-const userRes = await axios.get("/api/auth/me");
+    const res = await signIn("credentials", {
+      email: form.email,
+      password: form.password,
+      redirect: false,
+    });
 
-const user = userRes.data.user;
+    if (res?.ok) {
+      toast.success("Login successful 🎉");
+    } else {
+      toast.error(res?.error || "Login failed");
+    }
 
-console.log("Logged in user:", user);
-
- if (user.role === "admin") {
-   router.push("/admin-dashboard");     
- } else if (user.role === "doctor") {
-  router.push("/dashboard");
-} else {
-  router.push("/profile");
-}
-
-// const res = await axios.post("/api/auth/login", form);
-
-// const user = res.data.user;
-
-// if (userRes.data.user.role === "doctor") {
-//   router.push("/dashboard");
-// } else {
-//   router.push("/profile");
-// }
-
-
-// // if (user.role === "admin") {
-// //   router.push("/admin-dashboard");        // 🔥 admin panel
-// // } else if (user.role === "doctor") {
-// //   router.push("/dashboard");    // doctor
-// // } else {
-// //   router.push("/profile");      // patient
-// // }
-
-    toast.success("Login successful 🎉");
-
-  } catch (err: any) {
-    toast.error(err.response?.data?.message || "Login failed");
-  }
-
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex">
-
       {/* LEFT SIDE */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -78,39 +65,37 @@ console.log("Logged in user:", user);
         transition={{ duration: 0.6 }}
         className="hidden md:flex w-1/2 bg-blue-600 text-white items-center justify-center flex-col p-10"
       >
-
-   <motion.h1
-      className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.7,
-        ease: "easeOut",
-    }}
-    >
-      HealthCare
-    </motion.h1>
+        <motion.h1
+          className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.7,
+            ease: "easeOut",
+          }}
+        >
+          HealthCare
+        </motion.h1>
 
         {/* <h1 className="text-4xl font-bold mb-4">HealthCare</h1> */}
         {/* <p className="text-lg text-blue-100 text-center max-w-md">
           Manage patients, appointments, and reports in one powerful dashboard.
         </p> */}
         <motion.p
-  className="text-lg text-blue-100 text-center max-w-md"
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{
-    duration: 0.6,
-    ease: "easeOut",
-  }}
->
-  Manage patients, appointments, and reports in one powerful dashboard.
-</motion.p>
+          className="text-lg text-blue-100 text-center max-w-md"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.6,
+            ease: "easeOut",
+          }}
+        >
+          Manage patients, appointments, and reports in one powerful dashboard.
+        </motion.p>
       </motion.div>
 
       {/* RIGHT SIDE */}
       <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-50">
-
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,8 +110,7 @@ console.log("Logged in user:", user);
             Login to continue
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-
+          <form onSubmit={handleLogin} className="mt-6 space-y-5">
             {/* Email */}
             <div>
               <label className="text-sm text-gray-600">Email</label>
@@ -134,9 +118,7 @@ console.log("Logged in user:", user);
                 type="email"
                 placeholder="you@example.com"
                 className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
               />
             </div>

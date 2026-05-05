@@ -4,63 +4,72 @@ import axios from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export default function Navbar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-    const [user, setUser] = useState<any>(null);
+  const { data: session, status } = useSession();
+  const [user, setUser] = useState<any>(null);
+
+  // useEffect(() => {
+  //   fetchUser();
+  // }, []);
+
+  // const fetchUser = async () => {
+  //   try {
+  //     const res = await axios.get("/api/auth/me");
+  //     setUser(res.data.user);
+  //   } catch {
+  //     toast.error("User not found");
+  //   }
+  // };
 
   useEffect(() => {
-  fetchUser();
-}, []);
+    if (session?.user) {
+      setUser(session.user);
+    }
+  }, [session]);
 
-const fetchUser = async () => {
-  try {
-    const res = await axios.get("/api/auth/me");
-    setUser(res.data.user);
-  } catch {
-    toast.error("User not found");
-  }
-};
+  console.log("Current user:", user);
 
-console.log("Current user:", user);
+  const handleLogout = async () => {
+    try {
+      // await axios.post("/api/auth/logout");
 
-const handleLogout = async () => {
-  try {
-    await axios.post("/api/auth/logout");
+      // toast.success("Logged out successfully");
 
-    toast.success("Logged out successfully");
+      // setOpen(false); // 👈 close dropdown
 
-    setOpen(false); // 👈 close dropdown
+      // router.push("/login");
+      signOut({ callbackUrl: "/login" });
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  };
+  const roleStyles: any = {
+    admin: "bg-purple-100 text-purple-600",
+    doctor: "bg-blue-100 text-blue-600",
+    patient: "bg-green-100 text-green-600",
+  };
 
-    router.push("/login");
-  } catch (error) {
-    toast.error("Logout failed");
-  }
-};
-const roleStyles: any = {
-  admin: "bg-purple-100 text-purple-600",
-  doctor: "bg-blue-100 text-blue-600",
-  patient: "bg-green-100 text-green-600",
-};
-
-const roleMap: any = {
-  admin: "Admin",
-  doctor: "Doctor",
-  patient: "Patient",
-};
+  const roleMap: any = {
+    admin: "Admin",
+    doctor: "Doctor",
+    patient: "Patient",
+  };
 
   return (
     <div className="flex justify-between items-center bg-white px-6 py-3 shadow-sm border-b">
-
       {/* Left */}
       <h1 className="font-semibold text-lg text-gray-800">
-        ""
+        Healthcare Booking Appointment
       </h1>
 
       {/* Right */}
       <div className="relative">
-
         {/* Profile Button */}
         <button
           onClick={() => setOpen(!open)}
@@ -84,7 +93,6 @@ const roleMap: any = {
         {/* Dropdown */}
         {open && (
           <div className="absolute right-0 mt-2 w-44 bg-white border rounded-xl shadow-lg py-2 z-50">
-
             {/* Profile */}
             <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
               Profile
@@ -113,7 +121,6 @@ const roleMap: any = {
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7"
                 />
               </svg>
-
               Logout
             </button>
           </div>

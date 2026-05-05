@@ -10,30 +10,29 @@ export default function DoctorLayout({ children }: any) {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const res = await axios.get("/api/auth/me");
+  // useEffect(() => {
+  //   const checkUser = async () => {
+  //     try {
+  //       const res = await axios.get("/api/auth/me");
 
-        if (res.data.user.role !== "doctor") {
-          router.push("/profile"); // ❌ block patient
-        } else {
-          setUser(res.data.user);
-        }
-      } catch {
-        router.push("/login");
-      }
-    };
+  //       if (res.data.user.role !== "doctor") {
+  //         router.push("/profile"); // ❌ block patient
+  //       } else {
+  //         setUser(res.data.user);
+  //       }
+  //     } catch {
+  //       router.push("/login");
+  //     }
+  //   };
 
-    checkUser();
-  }, []);
+  //   checkUser();
+  // }, []);
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  // if (!user) return <p className="p-6">Loading...</p>;
 
   return (
     <div className="flex">
       <Sidebar role="doctor" />
-
       <div className="flex-1">
         {/* <Navbar user={user} /> */}
         <Navbar />

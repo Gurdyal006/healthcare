@@ -25,7 +25,6 @@ export default function SignupPage() {
 
     try {
       await axios.post("/api/auth/signup", form);
-
       toast.success("Account created 🎉");
       router.push("/login");
     } catch (err: any) {

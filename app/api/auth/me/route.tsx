@@ -12,11 +12,14 @@ export async function GET() {
 
     const user: any = jwt.verify(token, process.env.JWT_SECRET!);
 
+    console.log(user,'15yseres');
+    
+
     return Response.json({ user: {
       userId: user.userId,
       role: user.role,
       name: user.name,
-
+      profileImage:user.profileImage
     } });
  
   } catch {

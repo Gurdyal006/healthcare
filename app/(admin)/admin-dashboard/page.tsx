@@ -8,7 +8,6 @@ import StatCard from "@/components/StatCard";
 export default function AdminDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
@@ -30,21 +29,16 @@ export default function AdminDashboard() {
   // 📅 Today
   const today = new Date().toISOString().split("T")[0];
 
-  const todayAppointments = appointments.filter(
-    (a) => a.date === today
-  );
+  const todayAppointments = appointments.filter((a) => a.date === today);
 
   const pendingCount = appointments.filter(
-    (a) => a.status === "pending"
+    (a) => a.status === "pending",
   ).length;
 
-  const doctorsCount = [
-    ...new Set(appointments.map((a) => a.doctor)),
-  ].length;
+  const doctorsCount = [...new Set(appointments.map((a) => a.doctor))].length;
 
-  const patientsCount = [
-    ...new Set(appointments.map((a) => a.patientName)),
-  ].length;
+  const patientsCount = [...new Set(appointments.map((a) => a.patientName))]
+    .length;
 
   // 🔍 FILTER
   const filtered = appointments.filter((a) => {
@@ -52,8 +46,7 @@ export default function AdminDashboard() {
       a.patientName?.toLowerCase().includes(search.toLowerCase()) ||
       a.doctor?.toLowerCase().includes(search.toLowerCase());
 
-    const matchStatus =
-      statusFilter === "All" || a.status === statusFilter;
+    const matchStatus = statusFilter === "All" || a.status === statusFilter;
 
     return matchSearch && matchStatus;
   });
@@ -74,9 +67,7 @@ export default function AdminDashboard() {
       toast.success(`Updated to ${status}`);
 
       setAppointments((prev) =>
-        prev.map((a) =>
-          a._id === id ? { ...a, status } : a
-        )
+        prev.map((a) => (a._id === id ? { ...a, status } : a)),
       );
     } catch {
       toast.error("Update failed");
@@ -87,13 +78,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-
       {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold">Admin Dashboard 👨‍💼</h1>
-        <p className="text-gray-500 text-sm">
-          Full system overview
-        </p>
+        <p className="text-gray-500 text-sm">Full system overview</p>
       </div>
 
       {/* 📊 STATS */}
@@ -107,31 +95,28 @@ export default function AdminDashboard() {
 
       </div> */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+        <StatCard title="Appointments" value={appointments.length} />
 
-  <StatCard title="Appointments" value={appointments.length} />
+        <StatCard title="Today" value={todayAppointments.length} />
 
-  <StatCard title="Today" value={todayAppointments.length} />
+        <StatCard
+          title="Pending"
+          value={appointments.filter((a) => a.status === "pending").length}
+        />
 
-  <StatCard
-    title="Pending"
-    value={appointments.filter(a => a.status === "pending").length}
-  />
+        <StatCard
+          title="Doctors"
+          value={[...new Set(appointments.map((a) => a.doctor))].length}
+        />
 
-  <StatCard
-    title="Doctors"
-    value={[...new Set(appointments.map(a => a.doctor))].length}
-  />
-
-  <StatCard
-    title="Patients"
-    value={[...new Set(appointments.map(a => a.patientName))].length}
-  />
-
-</div>
+        <StatCard
+          title="Patients"
+          value={[...new Set(appointments.map((a) => a.patientName))].length}
+        />
+      </div>
 
       {/* 🔍 FILTERS */}
       <div className="bg-white p-4 rounded-xl shadow flex gap-3 flex-wrap">
-
         <input
           type="text"
           placeholder="Search doctor or patient..."
@@ -149,14 +134,11 @@ export default function AdminDashboard() {
           <option>confirmed</option>
           <option>cancelled</option>
         </select>
-
       </div>
 
       {/* 📋 TABLE */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
-
         <table className="w-full text-sm">
-
           <thead className="bg-gray-50 text-left text-gray-600">
             <tr>
               <th className="p-4">Patient</th>
@@ -171,20 +153,22 @@ export default function AdminDashboard() {
           <tbody>
             {filtered.map((a) => (
               <tr key={a._id} className="border-t hover:bg-gray-50">
-
                 <td className="p-4 font-medium">{a.patientName}</td>
                 <td>{a.doctor}</td>
                 <td>{a.problem}</td>
-                <td>{a.date} • {a.time}</td>
+                <td>
+                  {a.date} • {a.time}
+                </td>
 
                 <td>
-                  <span className={`px-2 py-1 rounded text-xs ${getStatusColor(a.status)}`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${getStatusColor(a.status)}`}
+                  >
                     {a.status}
                   </span>
                 </td>
 
                 <td className="text-right pr-4 space-x-2">
-
                   {a.status === "pending" && (
                     <>
                       <button
@@ -202,13 +186,10 @@ export default function AdminDashboard() {
                       </button>
                     </>
                   )}
-
                 </td>
-
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
     </div>
