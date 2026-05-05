@@ -171,6 +171,7 @@ const startMeeting = async (a: any) => {
     });
 
     window.location.href = `/call/${a._id}`;
+    //  window.open(`/call/${a._id}`, "_blank");
   } catch {
     toast.error("Failed to start meeting");
   }

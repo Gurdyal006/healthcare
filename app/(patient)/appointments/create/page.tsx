@@ -93,14 +93,14 @@ const symptomsList = Object.keys(SYMPTOM_MAP);
 
   //const timeSlots = ["10:00", "11:00", "12:00", "14:00", "15:00", "15:30", "16:00"];
 
-const timeSlots = generateTimeSlots(9, 18);
+const timeSlots = generateTimeSlots(9, 20);
 
 const bookedSlots = appointments
   .filter((a) => {
     return (
       a.doctorId === selectedDoctor?._id &&
       a.date === date &&
-      a.status !== "cancelled"
+      a.status !== "cancelled" && a.status !== "rejected" && a.status !== "completed"
     );
   })
   .map((a) => a.time);
@@ -143,7 +143,7 @@ const bookedSlots = appointments
     console.log("Saved:", res.data);
 
     toast.success("Email sent to doctor successfully! he will approve your appointment soon.");
-    router.push("/appointments"); // redirect to appointments list
+    router.push("/profile");
 
     // reset
     setSelectedDoctor(null);
@@ -156,6 +156,22 @@ const bookedSlots = appointments
   }finally {
     setBookingLoading(false);
   }
+};
+
+const isPastTime = (slot: string) => {
+  if (!date) return false;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  if (date !== today) return false;
+
+  const now = new Date();
+  const [h, m] = slot.split(":").map(Number);
+
+  const slotTime = new Date();
+  slotTime.setHours(h, m, 0);
+
+  return slotTime < now; // ❌ past time
 };
 
  return (
@@ -276,6 +292,7 @@ const bookedSlots = appointments
       onConfirm={handleBook}
       loading={bookingLoading}
        bookedSlots={bookedSlots}
+       isPastime={isPastTime}
     />
   </div>
 );

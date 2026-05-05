@@ -189,7 +189,7 @@ useEffect(() => {
         </button> */}
 
         <button
-            onClick={endCall}
+            onClick={handleEndCall}
             className="bg-red-600 text-white px-4 py-2 rounded"
           >
             🔴 End Call

@@ -7,6 +7,7 @@ import ProfileImage from "@/components/ProfileImage";
 import StatCard from "@/components/StatCard";
 import BasicStat from "@/components/BasicStat";
 import Loader from "@/components/Loader";
+import Link from "next/link";
 
 export default function PatientProfile() {
   const [user, setUser] = useState<any>(null);
@@ -124,6 +125,12 @@ return (
           {tab}
         </button>
       ))}
+
+          <Link href="/appointments/create">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+              + New Appointment
+            </button>
+          </Link>
     </div>
 
     {/* 📅 LIST */}

@@ -1,4 +1,4 @@
-  export default function generateTimeSlots(start = 9, end = 18) {
+  export default function generateTimeSlots(start = 9, end = 20) {
   const slots = [];
 
   for (let hour = start; hour < end; hour++) {
