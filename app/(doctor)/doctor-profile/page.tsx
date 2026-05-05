@@ -54,7 +54,7 @@ export default function DoctorProfilePage() {
     }
   };
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  // if (!user) return <Loader />;
 
   // ✅ doctor only appointments
   const myAppointments = appointments.filter(
@@ -77,25 +77,89 @@ export default function DoctorProfilePage() {
   };
 
   const handleReschedule = async () => {
-    if (!newDate || !newTime) {
-      toast.error("Select date & time");
-      return;
-    }
+  if (!newDate || !newTime) {
+    toast.error("Select date & time");
+    return;
+  }
 
-    try {
-      await axios.patch(`/api/appointments/${rescheduleData._id}`, {
-        date: newDate,
-        time: newTime,
-        status: "rescheduled",
-      });
+  // ❗ prevent past date
+  const selectedDateTime = new Date(`${newDate}T${newTime}`);
+  if (selectedDateTime < new Date()) {
+    toast.error("Cannot select past time");
+    return;
+  }
 
-      toast.success("Rescheduled");
-      fetchAppointments();
-      setRescheduleData(null);
-    } catch {
-      toast.error("Failed");
-    }
-  };
+  try {
+    await axios.patch(`/api/appointments/${rescheduleData._id}`, {
+      date: newDate,
+      time: newTime,
+      status: "rescheduled",
+    });
+
+    toast.success("Appointment rescheduled ✅");
+
+    fetchAppointments();
+
+    // reset state
+    setRescheduleData(null);
+    setNewDate("");
+    setNewTime("");
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Reschedule failed");
+  }
+};
+  // const handleReschedule = async () => {
+  //   if (!newDate || !newTime) {
+  //     toast.error("Select date & time");
+  //     return;
+  //   }
+
+  //   try {
+  //     await axios.patch(`/api/appointments/${rescheduleData._id}`, {
+  //       date: newDate,
+  //       time: newTime,
+  //       status: "rescheduled",
+  //     });
+
+  //     toast.success("Rescheduled");
+  //     fetchAppointments();
+  //     setRescheduleData(null);
+  //   } catch {
+  //     toast.error("Failed");
+  //   }
+  // };
+
+// const canStartMeeting = (appointmentDateTime: string) => {
+//   const now = new Date();
+//   const appt = new Date(appointmentDateTime);
+
+//   const diff = (appt.getTime() - now.getTime()) / 60000;
+
+//   return diff <= 10 && diff >= -30;
+// };
+
+const canStartMeeting = (appointmentDateTime: string) => {
+  const now = new Date();
+  const appt = new Date(appointmentDateTime);
+
+  const diff = (now.getTime() - appt.getTime()) / 60000;
+
+  return diff >= 0 && diff <= 30;
+};
+
+const startMeeting = async (a: any) => {
+  try {
+    await axios.patch(`/api/appointments/${a._id}`, {
+      meetingStarted: true,
+    });
+
+    window.location.href = `/call/${a._id}`;
+  } catch {
+    toast.error("Failed to start meeting");
+  }
+};
 
   return (
     <div className="bg-gray-100 min-h-screen p-6 space-y-6">

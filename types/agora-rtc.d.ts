@@ -1,0 +1,1 @@
+import AgoraRTC from "agora-rtc-sdk-ng";

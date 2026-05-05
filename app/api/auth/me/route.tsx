@@ -19,7 +19,8 @@ export async function GET() {
       userId: user.userId,
       role: user.role,
       name: user.name,
-      profileImage:user.profileImage
+      profileImage:user.profileImage,
+      email: user.email,
     } });
  
   } catch {

@@ -1,6 +1,13 @@
 import { connectDB } from "@/lib/mongodb";
 import Appointment from "@/models/Appointment";
 import mongoose from "mongoose";
+import {
+  patientTemplate,
+  doctorTemplate,
+  adminTemplate,
+} from "@/lib/emailTemplates";
+
+import { sendMail } from "@/lib/email";
 
 export async function PATCH(
   req: Request,
@@ -17,10 +24,31 @@ export async function PATCH(
     }
 
     const updated = await Appointment.findByIdAndUpdate(id, body, {
-      new: true,
+      returnDocument: "after",
     });
 
+
+    if (!updated) {
+      return Response.json({ error: "Appointment not found" }, { status: 404 });
+    }
+
+    console.log("Updated appointment:", updated);    
+
+
+    if(body.status === "confirmed") {
+    // send email safely
+    sendMail({
+      to: updated?.patientEmail,
+      subject: "Appointment Confirmed ✅",
+      html: patientTemplate(updated),
+    }).catch((err) => console.error("Email failed:", err));
+     }
+
+
+
+
     return Response.json(updated);
+    
   } catch (err: any) {
     return Response.json({ message: err.message }, { status: 500 });
   }

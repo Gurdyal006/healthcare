@@ -76,18 +76,19 @@ export default function Navbar() {
           className="flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-gray-100 transition"
         >
           <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
-            {user?.role == "admin" ? "A" : "D"}
+            {/* {user?.role == "admin" ? "A" : "D"} */}
+            {user?.name?.charAt(0)?.toUpperCase() || "U" }
           </div>
-          {/* <span className="text-sm text-gray-700 hidden sm:block">
-            {user?.role == "admin" ? "Admin" : "Doctor"}
-          </span> */}
-          <span
+          <span className="text-sm text-gray-700 hidden sm:block">
+            {user?.name || "Unknown"}
+          </span>
+          {/* <span
             className={`px-2 py-1 rounded text-xs font-medium ${
               roleStyles[user?.role]
             }`}
           >
             {roleMap[user?.role]}
-          </span>
+          </span> */}
         </button>
 
         {/* Dropdown */}

@@ -5,6 +5,14 @@ import jwt from "jsonwebtoken";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+import {
+  patientTemplate,
+  doctorTemplate,
+  adminTemplate,
+} from "@/lib/emailTemplates";
+
+import { sendMail } from "@/lib/email";
+
 // CREATE
 export async function POST(req: Request) {
   try {
@@ -14,9 +22,10 @@ export async function POST(req: Request) {
 
     const exists = await Appointment.findOne({
       doctorId: body.doctorId,
-      doctor: body.doctorName,
+      doctor: body.doctor,
       date: body.date,
       time: body.time,
+      appointmentDateTime: new Date(`${body.date}T${body.time}:00`),
       status: { $ne: "cancelled" },
     });
 
@@ -27,7 +36,38 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log("Creating appointment with data:", body);
     const saved = await Appointment.create(body);
+    console.log("Appointment created successfully:", saved);
+
+// SEND EMAILS -- doctor, patient, admin
+
+    console.log("Sending emails to:", {
+      //patient: body.patientEmail,
+      doctor: body.doctorEmail,
+      admin: process.env.HOSPITAL_EMAIL,
+    });
+        try {
+      await Promise.all([
+        // sendMail({
+        //   to: body.patientEmail,
+        //   subject: "Appointment Confirmed ✅",
+        //   html: patientTemplate(body),
+        // }),
+        sendMail({
+          to: body.doctorEmail,
+          subject: "New Appointment Request 📅",
+          html: doctorTemplate(body),
+        }),
+        sendMail({
+          to: process.env.HOSPITAL_EMAIL,
+          subject: "New Appointment Booked 🏥",
+          html: adminTemplate(body),
+        }),
+      ]);
+    } catch (e) {
+      console.log("Email failed:");
+    }
 
     return Response.json(saved);
   } catch (err: any) {
@@ -36,6 +76,7 @@ export async function POST(req: Request) {
 }
 
 // GET (ROLE BASED)
+
 export async function GET() {
   await connectDB();
 

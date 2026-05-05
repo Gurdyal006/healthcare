@@ -3,6 +3,7 @@
 import axios from "@/lib/axios"; // ✅ use your instance
 import { useEffect, useState } from "react";
 import StatCard from "@/components/StatCard";
+import Loader from "@/components/Loader";
 
 export default function DashboardPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -31,7 +32,7 @@ export default function DashboardPage() {
   const recentAppointments = [...appointments].slice(0, 5);
 
   if (loading) {
-    return <p className="p-6">Loading dashboard...</p>;
+    return <Loader />;
   }
 
   return (

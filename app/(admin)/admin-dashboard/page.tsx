@@ -4,16 +4,45 @@ import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import toast from "react-hot-toast";
 import StatCard from "@/components/StatCard";
+import Loader from "@/components/Loader";
 
 export default function AdminDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [doctorsCount, setDoctorsCount] = useState(0);
+  const [patientsCount, setPatientsCount] = useState(0);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     fetchAppointments();
+    fetchAllDoctors();
+    fetchAllPatients();
   }, []);
+
+  const fetchAllDoctors = async () => {
+    try{
+   const res = await axios.get("/api/doctors");
+      setDoctorsCount(Array.isArray(res.data) ? res.data.length : 0);
+     } catch {
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+   const fetchAllPatients = async () => {
+    try{
+   const res = await axios.get("/api/patients");
+      setPatientsCount(Array.isArray(res.data) ? res.data.length : 0);
+     } catch {
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   const fetchAppointments = async () => {
     try {
@@ -35,10 +64,13 @@ export default function AdminDashboard() {
     (a) => a.status === "pending",
   ).length;
 
-  const doctorsCount = [...new Set(appointments.map((a) => a.doctor))].length;
+  const doctorsAppoinmentCount = [
+    ...new Set(appointments.map((a) => a.doctor)),
+  ].length;
 
-  const patientsCount = [...new Set(appointments.map((a) => a.patientName))]
-    .length;
+  const patientsAppointmentCount = [
+    ...new Set(appointments.map((a) => a.patientName)),
+  ].length;
 
   // 🔍 FILTER
   const filtered = appointments.filter((a) => {
@@ -74,7 +106,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) return <p className="p-6">Loading admin dashboard...</p>;
+  if (loading) return <Loader />;
 
   return (
     <div className="space-y-6">
@@ -109,11 +141,19 @@ export default function AdminDashboard() {
           value={[...new Set(appointments.map((a) => a.doctor))].length}
         />
 
-        <StatCard
-          title="Patients"
-          value={[...new Set(appointments.map((a) => a.patientName))].length}
-        />
-      </div>
+  <StatCard
+    title="Doctors"
+    value={doctorsCount}
+    //value={[...new Set(appointments.map(a => a.doctor))].length}
+  />
+
+  <StatCard
+    title="Patients"
+    value={patientsCount}
+    //value={[...new Set(appointments.map(a => a.patientName))].length}
+  />
+
+</div>
 
       {/* 🔍 FILTERS */}
       <div className="bg-white p-4 rounded-xl shadow flex gap-3 flex-wrap">
