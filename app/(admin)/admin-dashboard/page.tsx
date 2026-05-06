@@ -232,6 +232,15 @@ export default function AdminDashboard() {
                       </button>
                     </>
                   )}
+                {/*  (for confirmed + completed) */}
+                  {(a.status === "confirmed" || a.status === "completed") && (
+                    <button
+                      //onclick={() => handleView()}
+                      className="text-blue-600 text-sm font-medium hover:underline"
+                    >
+                      View
+                    </button>
+                  )}
 
                 </td>
 

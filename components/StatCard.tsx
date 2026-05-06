@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, Activity, Users, UserCheck } from "lucide-react";
+import CountUp from "react-countup";
 
 type Props = {
   title: string;
@@ -43,7 +44,9 @@ export default function StatCard({ title, value }: Props) {
       </div>
 
       {/* Value */}
-      <h2 className="text-3xl font-bold mt-3">{value}</h2>
+      <h2 className="text-3xl font-bold mt-3">
+      <CountUp end={value} duration={1.5} />
+      </h2>       
     </div>
   );
 }
