@@ -1,134 +1,3 @@
-// "use client";
-
-// import { useState } from "react";
-// import axios from "@/lib/axios";
-// import toast from "react-hot-toast";
-// import { useRouter } from "next/navigation";
-
-// export default function CreateDoctorPage() {
-//   const router = useRouter();
-
-//   const [form, setForm] = useState({
-//     name: "",
-//     email: "",
-//     password: "",
-//     specialization: "",
-//     experience: "",
-//     gender: "",
-//   });
-
-//   const [loading, setLoading] = useState(false);
-
-//   const handleChange = (e: any) => {
-//     setForm({ ...form, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async (e: any) => {
-//     e.preventDefault();
-
-//     if (!form.name || !form.email || !form.password) {
-//       return toast.error("All fields required");
-//     }
-
-//     setLoading(true);
-
-//     try {
-//       await axios.post("/api/admin/create-doctor", {
-//         ...form,
-//         experience: Number(form.experience),
-//       });
-
-//       toast.success("Doctor created successfully 👨‍⚕️");
-
-//       router.push("/admin-dashboard"); // redirect after create
-//     } catch (err: any) {
-//       toast.error(err.response?.data?.message || "Error");
-//     }
-
-//     setLoading(false);
-//   };
-
-//   return (
-//     <div className="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow space-y-6">
-
-//       {/* Header */}
-//       <div>
-//         <h1 className="text-2xl font-bold">Add Doctor</h1>
-//         <p className="text-gray-500 text-sm">
-//           Create new doctor account
-//         </p>
-//       </div>
-
-//       {/* Form */}
-//       <form onSubmit={handleSubmit} className="space-y-4">
-
-//         {/* Name */}
-//         <input
-//           name="name"
-//           placeholder="Doctor Name"
-//           className="w-full border p-3 rounded-lg"
-//           onChange={handleChange}
-//         />
-
-//         {/* Email */}
-//         <input
-//           name="email"
-//           type="email"
-//           placeholder="Email"
-//           className="w-full border p-3 rounded-lg"
-//           onChange={handleChange}
-//         />
-
-//         {/* Password */}
-//         <input
-//           name="password"
-//           type="password"
-//           placeholder="Password"
-//           className="w-full border p-3 rounded-lg"
-//           onChange={handleChange}
-//         />
-
-//         {/* Specialization */}
-//         <input
-//           name="specialization"
-//           placeholder="Specialization (e.g. Cardiologist)"
-//           className="w-full border p-3 rounded-lg"
-//           onChange={handleChange}
-//         />
-
-//         {/* Experience */}
-//         <input
-//           name="experience"
-//           type="number"
-//           placeholder="Experience (years)"
-//           className="w-full border p-3 rounded-lg"
-//           onChange={handleChange}
-//         />
-
-//         {/* Gender */}
-//         <select
-//           name="gender"
-//           className="w-full border p-3 rounded-lg"
-//           onChange={handleChange}
-//         >
-//           <option value="">Select Gender</option>
-//           <option value="male">Male</option>
-//           <option value="female">Female</option>
-//         </select>
-
-//         {/* Submit */}
-//         <button
-//           type="submit"
-//           disabled={loading}
-//           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
-//         >
-//           {loading ? "Creating..." : "Create Doctor"}
-//         </button>
-
-//       </form>
-//     </div>
-//   );
-// }
 
 "use client";
 
@@ -136,12 +5,13 @@ import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import toast from "react-hot-toast";
 import { SPECIALIZATIONS } from "@/lib/constants";
+import ProfileImage from "@/components/ProfileImage";
 
 export default function CreateDoctorPage() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: "",
+    //password: "",
     specialization: "",
     experience: "",
     gender: "",
@@ -171,7 +41,7 @@ export default function CreateDoctorPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.password) {
+    if (!form.name || !form.email || !form.specialization || !form.experience || !form.gender) {
       return toast.error("All fields required");
     }
 
@@ -190,7 +60,7 @@ export default function CreateDoctorPage() {
       setForm({
         name: "",
         email: "",
-        password: "",
+        //password: "",
         specialization: "",
         experience: "",
         gender: "",
@@ -215,21 +85,22 @@ export default function CreateDoctorPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+     
 
-        {/* LEFT → FORM */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 space-y-6">
+      {/* 🔷 TOP → FORM */}
+<div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+  <h2 className="text-xl font-semibold mb-4">Add Doctor</h2>
 
-          <h2 className="text-xl font-semibold">Add Doctor</h2>
+  <form
+    onSubmit={handleSubmit}
+    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+  >
+    <Input label="Full Name" name="name" value={form.name} onChange={handleChange} />
+    <Input label="Email" name="email" value={form.email} onChange={handleChange} />
+   {/* <Input label="Password" name="password" value={form.password} onChange={handleChange} /> */}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            <Input label="Full Name" name="name" value={form.name} onChange={handleChange} />
-            <Input label="Email" name="email" value={form.email} onChange={handleChange} type="email" />
-            <Input label="Password" name="password" value={form.password} onChange={handleChange} type="password" />
-
-            {/*<Input label="Specialization" name="specialization" value={form.specialization} onChange={handleChange} />*/}
-            <div>
+    {/* Specialization */}
+    <div>
               <label className="text-sm text-gray-600">
                 Specialization
               </label>
@@ -268,9 +139,8 @@ export default function CreateDoctorPage() {
 
             </select>
           </div>
-            {/* <Input label="Experience (years)" name="experience" value={form.experience} onChange={handleChange} type="number" /> */}
 
-            {/* Gender */}
+       {/* Gender */}
             <div>
               <label className="text-sm text-gray-600">Gender</label>
               <select
@@ -285,62 +155,56 @@ export default function CreateDoctorPage() {
               </select>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition"
-            >
-              {loading ? "Creating..." : "Create Doctor"}
-            </button>
-          </form>
+   <div className="col-span-full flex justify-end">
+  <button
+    type="submit"
+    className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+  >
+    {loading ? "Creating..." : "Create Doctor"}
+  </button>
+</div>
+  </form>
+</div>
+
+{/* 🔷 BOTTOM → DOCTOR CARDS */}
+ <h2 className="text-xl font-semibold mb-4">Doctors</h2>
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+ 
+  {doctors.map((doc) => (
+    <div
+      key={doc._id}
+      className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        {/* <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold">
+          {doc.name?.charAt(0)}
+        </div> */}
+                <ProfileImage
+                  src={doc?.profileImage}
+                  name={doc?.name}
+                  className="w-20 h-20 border-4 border-white"
+                />
+
+        <div>
+          <p className="font-semibold">{doc.name}</p>
+          <p className="text-sm text-gray-500">{doc.specialization}</p>
         </div>
-
-        {/* RIGHT → DOCTOR LIST */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4">
-
-          <h2 className="text-xl font-semibold">All Doctors</h2>
-
-          {doctors.length === 0 ? (
-            <p className="text-gray-500">No doctors found</p>
-          ) : (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-
-              {doctors.map((doc) => (
-                <div
-                  key={doc._id}
-                  className="flex items-center justify-between p-4 rounded-xl border hover:shadow-md transition"
-                >
-                  <div className="flex items-center gap-3">
-
-                    {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                      {doc.name?.charAt(0)}
-                    </div>
-
-                    <div>
-                      <p className="font-semibold text-gray-800">
-                        {doc.name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {doc.specialization}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {doc.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="bg-blue-100 text-blue-600 text-xs px-3 py-1 rounded-full">
-                    {doc.experience || 0} yrs
-                  </span>
-                </div>
-              ))}
-
-            </div>
-          )}
-        </div>
-
       </div>
+
+      <p className="text-sm text-gray-500">{doc.email}</p>
+
+      <div className="flex justify-between items-center mt-3">
+        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+          {doc.experience || 0} yrs
+        </span>
+
+        <button className="text-sm text-indigo-600 hover:underline">
+          View
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
     </div>
   );
 }

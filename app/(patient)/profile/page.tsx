@@ -114,9 +114,16 @@ return (
           title="Confirmed"
           value={appointments.filter(a => a.status === "confirmed").length}
         />
+        {/* <BasicStat title="Confirmed" 
+        value={appointments.filter(a => a.status === "confirmed").length} 
+        color="green" icon="✅" /> */}
         <BasicStat
           title="Pending"
           value={appointments.filter(a => a.status === "pending").length}
+        />
+         <BasicStat
+          title="Completed"
+          value={appointments.filter(a => a.status === "completed").length}
         />
       </div>
     </div>
@@ -134,7 +141,36 @@ return (
     </div>
 
     {/* 🧭 FILTER TABS */}
-    <div className="flex gap-2">
+    <div className="flex items-center justify-between mb-4">
+
+  {/* LEFT → FILTERS */}
+  <div className="flex gap-2">
+    {["all", "pending", "confirmed"].map((tab) => (
+      <button
+        key={tab}
+        onClick={() => setFilter(tab)}
+        className={`px-4 py-1 rounded-full text-sm transition
+          ${
+            filter === tab
+              ? "bg-blue-600 text-white shadow"
+              : "bg-white border hover:bg-gray-100"
+          }
+        `}
+      >
+       {tab.charAt(0).toUpperCase() + tab.slice(1)}
+      </button>
+    ))}
+  </div>
+
+  {/* RIGHT → BUTTON */}
+  <Link href="/appointments/create">
+    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition">
+      + New Appointment
+    </button>
+  </Link>
+
+</div>
+    {/* <div className="flex gap-2">
       {["all", "pending", "confirmed"].map((tab) => (
         <button
           key={tab}
@@ -154,7 +190,7 @@ return (
               + New Appointment
             </button>
           </Link>
-    </div>
+    </div> */}
 
     {/* 📅 LIST */}
     {filteredAppointments.length === 0 ? (
