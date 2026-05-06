@@ -5,30 +5,33 @@ import axios from "@/lib/axios";
 import toast from "react-hot-toast";
 import ProfileImage from "@/components/ProfileImage";
 import BasicStat from "@/components/BasicStat";
+import Loader from "@/components/Loader";
 import { useSession } from "next-auth/react";
 
 export default function DoctorProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
+
   const [rescheduleData, setRescheduleData] = useState<any>(null);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [showReject, setShowReject] = useState<string | null>(null);
   const { data: session, status } = useSession();
-
- 
 
   useEffect(() => {
     // fetchUser();
-       if (session?.user) {
+    if (session?.user) {
       setUser(session.user);
     }
+    // fetchUser();
     fetchAppointments();
   }, [session]);
 
   // const fetchUser = async () => {
   //   try {
-  //     const res = await axios.get("/api/auth/me");
-  //     const baseUser = res.data.user;
+  //     console.log(user,'32users');
+      
+  //     const baseUser = user;
 
   //     // if doctor → fetch full details
   //     if (baseUser.role === "doctor") {
@@ -56,7 +59,7 @@ export default function DoctorProfilePage() {
     }
   };
 
-  // if (!user) return <Loader />;
+  if (!user) return <Loader />;
 
   // ✅ doctor only appointments
   const myAppointments = appointments.filter(
@@ -79,39 +82,38 @@ export default function DoctorProfilePage() {
   };
 
   const handleReschedule = async () => {
-  if (!newDate || !newTime) {
-    toast.error("Select date & time");
-    return;
-  }
+    if (!newDate || !newTime) {
+      toast.error("Select date & time");
+      return;
+    }
 
-  // ❗ prevent past date
-  const selectedDateTime = new Date(`${newDate}T${newTime}`);
-  if (selectedDateTime < new Date()) {
-    toast.error("Cannot select past time");
-    return;
-  }
+    // ❗ prevent past date
+    const selectedDateTime = new Date(`${newDate}T${newTime}`);
+    if (selectedDateTime < new Date()) {
+      toast.error("Cannot select past time");
+      return;
+    }
 
-  try {
-    await axios.patch(`/api/appointments/${rescheduleData._id}`, {
-      date: newDate,
-      time: newTime,
-      status: "rescheduled",
-    });
+    try {
+      await axios.patch(`/api/appointments/${rescheduleData._id}`, {
+        date: newDate,
+        time: newTime,
+        status: "rescheduled",
+      });
 
-    toast.success("Appointment rescheduled ✅");
+      toast.success("Appointment rescheduled ✅");
 
-    fetchAppointments();
+      fetchAppointments();
 
-    // reset state
-    setRescheduleData(null);
-    setNewDate("");
-    setNewTime("");
-
-  } catch (err) {
-    console.error(err);
-    toast.error("Reschedule failed");
-  }
-};
+      // reset state
+      setRescheduleData(null);
+      setNewDate("");
+      setNewTime("");
+    } catch (err) {
+      console.error(err);
+      toast.error("Reschedule failed");
+    }
+  };
   // const handleReschedule = async () => {
   //   if (!newDate || !newTime) {
   //     toast.error("Select date & time");
@@ -133,47 +135,47 @@ export default function DoctorProfilePage() {
   //   }
   // };
 
-// const canStartMeeting = (appointmentDateTime: string) => {
-//   const now = new Date();
-//   const appt = new Date(appointmentDateTime);
+  // const canStartMeeting = (appointmentDateTime: string) => {
+  //   const now = new Date();
+  //   const appt = new Date(appointmentDateTime);
 
-//   const diff = (appt.getTime() - now.getTime()) / 60000;
+  //   const diff = (appt.getTime() - now.getTime()) / 60000;
 
-//   return diff <= 10 && diff >= -30;
-// };
+  //   return diff <= 10 && diff >= -30;
+  // };
 
-const canStartMeeting = (appointmentDateTime: string) => {
-  const now = new Date();
-  const appt = new Date(appointmentDateTime);
+  const canStartMeeting = (appointmentDateTime: string) => {
+    const now = new Date();
+    const appt = new Date(appointmentDateTime);
 
-  const diff = (now.getTime() - appt.getTime()) / 60000;
+    const diff = (now.getTime() - appt.getTime()) / 60000;
 
-  return diff >= 0 && diff <= 30;
-};
+    return diff >= 0 && diff <= 30;
+  };
 
-// const startMeeting = async (a: any) => {
-//   try {
-//     await axios.patch(`/api/appointments/${a._id}`, {
-//       meetingStarted: true,
-//     });
+  // const startMeeting = async (a: any) => {
+  //   try {
+  //     await axios.patch(`/api/appointments/${a._id}`, {
+  //       meetingStarted: true,
+  //     });
 
-//     window.location.href = `/call/${a._id}`;
-//   } catch {
-//     toast.error("Failed to start meeting");
-//   }
-// };
-const startMeeting = async (a: any) => {
-  try {
-    await axios.patch(`/api/appointments/${a._id}`, {
-      meetingStarted: true,
-      callStartedAt: new Date(), // ✅ ADD
-    });
+  //     window.location.href = `/call/${a._id}`;
+  //   } catch {
+  //     toast.error("Failed to start meeting");
+  //   }
+  // };
+  const startMeeting = async (a: any) => {
+    try {
+      await axios.patch(`/api/appointments/${a._id}`, {
+        meetingStarted: true,
+        callStartedAt: new Date(), // ✅ ADD
+      });
 
-    window.location.href = `/call/${a._id}`;
-  } catch {
-    toast.error("Failed to start meeting");
-  }
-};
+      window.location.href = `/call/${a._id}`;
+    } catch {
+      toast.error("Failed to start meeting");
+    }
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen p-6 space-y-6">
@@ -187,16 +189,16 @@ const startMeeting = async (a: any) => {
           />
 
           <div>
-            <h2 className="text-2xl font-bold">{user?.name}</h2>
-            <p className="text-purple-100">{user?.specialization || "Doctor"}</p>
-            <p className="text-xs text-purple-200">{user?.email}</p>
+            <h2 className="text-2xl font-bold">{user.name}</h2>
+            <p className="text-purple-100">{user.specialization || "Doctor"}</p>
+            <p className="text-xs text-purple-200">{user.email}</p>
 
             <div className="flex gap-3 mt-2 text-sm">
               <span className="bg-white/20 px-3 py-1 rounded-full">
-                🎯 {user?.experience || 0} yrs
+                🎯 {user.experience || 0} yrs
               </span>
               <span className="bg-white/20 px-3 py-1 rounded-full">
-                👤 {user?.gender || "N/A"}
+                👤 {user.gender || "N/A"}
               </span>
             </div>
           </div>
@@ -269,36 +271,149 @@ const startMeeting = async (a: any) => {
                     {a.status}
                   </span>
 
-                  {a.status === "pending" && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => updateStatus(a._id, "confirmed")}
-                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs rounded-lg"
-                      >
-                        Accept
-                      </button>
+                  <div className="flex gap-2">
+                    {a.status === "pending" && (
+                      <>
+                        {/* ✅ ACCEPT */}
+                        <button
+                          onClick={() => updateStatus(a._id, "confirmed")}
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                                          bg-green-600 hover:bg-green-700 text-white 
+                                          text-sm font-medium transition duration-200 shadow"
+                        >
+                          Accept
+                        </button>
 
-                      <button
-                        onClick={() => updateStatus(a._id, "cancelled")}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-xs rounded-lg"
-                      >
-                        Reject
-                      </button>
+                        {/* ❌ REJECT */}
+                        <button
+                          onClick={() => setShowReject(a._id)}
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                                          bg-red-600 hover:bg-red-700 text-white 
+                                          text-sm font-medium transition duration-200 shadow"
+                        >
+                          Reject
+                        </button>
+                        {/* <button
+                                onClick={() => {
+                                  if (confirm("Are you sure you want to reject this appointment?")) {
+                                    updateStatus(a._id, "cancelled");
+                                  }
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg 
+                                          bg-red-600 hover:bg-red-700 text-white 
+                                          text-sm font-medium transition duration-200 shadow"
+                              >
+                                 Reject
+                              </button> */}
+                      </>
+                    )}
 
-                      <button
-                        onClick={() => setRescheduleData(a)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-xs rounded-lg"
-                      >
-                        Reschedule
-                      </button>
-                    </div>
-                  )}
+                    {a.status === "confirmed" &&
+                      canStartMeeting(a.appointmentDateTime) && (
+                        <button
+                          onClick={() => startMeeting(a)}
+                          className="bg-indigo-600 text-white px-3 py-1 rounded"
+                        >
+                          🎥 Start Meeting
+                        </button>
+                      )}
+                    {a.status === "confirmed" &&
+                      !canStartMeeting(a.appointmentDateTime) && (
+                        <p className="text-xs text-gray-400">
+                          Meeting starts at {a.time}
+                        </p>
+                      )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {rescheduleData && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[350px] space-y-4 shadow-xl">
+            <h2 className="text-lg font-semibold">Reschedule Appointment</h2>
+
+            <input
+              type="date"
+              className="w-full border p-2 rounded"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+            />
+
+            <input
+              type="time"
+              className="w-full border p-2 rounded"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setRescheduleData(null)}
+                className="px-3 py-1 bg-gray-200 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleReschedule}
+                className="px-3 py-1 bg-blue-600 text-white rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReject && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-[320px] p-6 text-center animate-[fadeIn_0.2s_ease]">
+            {/* Icon */}
+            <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-full bg-red-100 text-red-600 text-xl">
+              ⚠️
+            </div>
+
+            {/* Title */}
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">
+              Reject Appointment
+            </h2>
+
+            {/* Description */}
+            <p className="text-sm text-gray-500 mb-5">
+              Are you sure you want to reject this appointment? This action
+              cannot be undone.
+            </p>
+
+            {/* Actions */}
+            <div className="flex justify-center gap-3">
+              {/* Cancel */}
+              <button
+                onClick={() => setShowReject(null)}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 
+                     hover:bg-gray-100 transition text-sm font-medium"
+              >
+                Cancel
+              </button>
+
+              {/* Reject */}
+              <button
+                onClick={async () => {
+                  await updateStatus(showReject, "cancelled");
+                  setShowReject(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white 
+                     hover:bg-red-700 transition text-sm font-medium shadow"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

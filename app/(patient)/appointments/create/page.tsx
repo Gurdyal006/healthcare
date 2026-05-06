@@ -64,7 +64,6 @@ export default function CreateAppointmentPage() {
         toast.error("Failed to load data");
       }
     };
-
     loadData();
   }, []);
 
