@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import ProfileImage from "@/components/ProfileImage";
 import { useSession } from "next-auth/react";
 
+import Loader from "@/components/Loader";
 
 export default function AdminProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -42,7 +43,7 @@ export default function AdminProfilePage() {
     }
   };
 
-  if (!user) return <p className="p-6">Loading...</p>;
+  if (!user) return <Loader />;
 
   return (
     <div className="bg-gray-100 min-h-screen p-6 space-y-6">

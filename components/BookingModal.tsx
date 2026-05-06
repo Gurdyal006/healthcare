@@ -15,6 +15,7 @@ export default function BookingModal({
   onConfirm,
   loading,
   bookedSlots,
+  isPastime
 }: any) {
   return (
     <Modal open={open} onClose={onClose}>
@@ -38,6 +39,7 @@ export default function BookingModal({
 
       <input
         type="date"
+        min={new Date().toISOString().split("T")[0]} // ✅ today onwards only
         className="w-full border p-2 rounded mb-2"
         value={date}
         onChange={(e) => setDate(e.target.value)}
@@ -47,12 +49,13 @@ export default function BookingModal({
       <div className="grid grid-cols-3 gap-2 mb-3">
        {timeSlots.map((timeSlot : any) => {
             const isBooked = bookedSlots.includes(timeSlot);
+            const isPastTime = isPastime(timeSlot);
 
             return (
                 <button
                 key={timeSlot}
-                disabled={isBooked}
-                onClick={() => !isBooked && setTime(timeSlot)}
+                disabled={isBooked || isPastTime}
+                onClick={() => !isBooked && !isPastTime && setTime(timeSlot)}
                 className={`px-3 py-2 rounded border text-sm
                     ${
                     isBooked
@@ -63,7 +66,7 @@ export default function BookingModal({
                     }
                 `}
                 >
-                {timeSlot} {isBooked && "❌"}
+                {timeSlot} {isBooked && "❌"} {isPastTime && "❌"}
                 </button>
             );
             })}

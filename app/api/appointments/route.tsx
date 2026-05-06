@@ -36,6 +36,15 @@ export async function POST(req: Request) {
       );
     }
 
+    const appointmentTime = new Date(`${body.date}T${body.time}:00`);
+
+      if (appointmentTime < new Date()) {
+        return Response.json(
+          { message: "Cannot book past time" },
+          { status: 400 }
+        );
+      }
+
     console.log("Creating appointment with data:", body);
     const saved = await Appointment.create(body);
     console.log("Appointment created successfully:", saved);
@@ -76,6 +85,57 @@ export async function POST(req: Request) {
 }
 
 // GET (ROLE BASED)
+// export async function GET(req: Request) {
+//   try {
+//     await connectDB();
+
+//     const { searchParams } = new URL(req.url);
+
+//     const page = Number(searchParams.get("page")) || 1;
+//     const limit = Number(searchParams.get("limit")) || 10;
+
+//     const skip = (page - 1) * limit;
+
+//     const cookieStore = await cookies();
+//     const token = cookieStore.get("token")?.value;
+
+//     if (!token) {
+//       return Response.json({ message: "No token" }, { status: 401 });
+//     }
+
+//     const user: any = jwt.verify(token, process.env.JWT_SECRET!);
+
+//     let query: any = {};
+
+//     if (user.role === "admin") {
+//       query = {};
+//     } else if (user.role === "doctor") {
+//       query = { doctorId: user.userId };
+//     } else {
+//       query = { patientId: user.userId };
+//     }
+
+//     // ✅ total count
+//     const total = await Appointment.countDocuments(query);
+
+//     // ✅ paginated data
+//     const data = await Appointment.find(query)
+//       .sort({ createdAt: -1 })
+//       .skip(skip)
+//       .limit(limit)
+//       .lean();
+
+//     return Response.json({
+//       data,
+//       total,
+//       page,
+//       totalPages: Math.ceil(total / limit),
+//     });
+
+//   } catch (err: any) {
+//     return Response.json({ message: err.message }, { status: 500 });
+//   }
+// }
 
 export async function GET() {
   await connectDB();

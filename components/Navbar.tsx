@@ -65,7 +65,7 @@ export default function Navbar() {
     <div className="flex justify-between items-center bg-white px-6 py-3 shadow-sm border-b">
       {/* Left */}
       <h1 className="font-semibold text-lg text-gray-800">
-        Healthcare Booking Appointment
+        Appointment Management System
       </h1>
 
       {/* Right */}

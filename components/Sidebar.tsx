@@ -22,15 +22,14 @@ export default function Sidebar({ role }: Props) {
 
   const doctorMenu = [
     { name: "Dashboard", path: "/dashboard" },
-    { name: "Profile", path: "/doctor-profile" },
+    { name: "Appointments", path: "/doctor-profile" },
     //{ name: "Appointments", path: "/doctor-appointments" },
   ];
 
-  const patientMenu = [
-    { name: "Profile", path: "/profile" },
-    { name: "My Appointments", path: "/appointments" },
-    //{ name: "Create Appointment", path: "/create-appointment" },
-  ];
+ const patientMenu = [
+  { name: "My Appointments", path: "/profile" },
+  { name: "Book Appointment", path: "/appointments/create" },
+];
 
   const menu = role === "admin" ? adminMenu : role === "doctor" ? doctorMenu : patientMenu;
 
@@ -44,7 +43,7 @@ export default function Sidebar({ role }: Props) {
 
   return (
     <div className="w-64  bg-gray-900 text-white p-5">
-      <h2 className="text-xl font-bold mb-6">HealthCare</h2>
+      <h2 className="text-xl font-bold mb-6">TM-HealthCare</h2>
 
       <ul className="space-y-2">
         {menu.map((item) => {

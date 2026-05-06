@@ -24,20 +24,33 @@ const [appointment, setAppointment] = useState<any>(null);
       const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
 
       rtcClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-
       const channel = `appointment_${appointmentId}`;
+      const uid = Math.floor(Math.random() * 10000); // ✅ safe
 
-      const res = await axiosInstance(
-        `/api/agora-token?channel=${channel}&uid=${userId}`
-      );
-      const data = res?.data;
+        const res = await axios.get(
+          `/api/agora-token?channel=${channel}&uid=${uid}`
+        );
 
-      await rtcClient.join(
-        process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-        channel,
-        data.token,
-        userId
-      );
+        await rtcClient.join(
+          process.env.NEXT_PUBLIC_AGORA_APP_ID!,
+          channel,
+          res.data.token,
+          uid
+        );
+
+      // const channel = `appointment_${appointmentId}`;
+
+      // const res = await axiosInstance(
+      //   `/api/agora-token?channel=${channel}&uid=${userId}`
+      // );
+      // const data = res?.data;
+
+      // await rtcClient.join(
+      //   process.env.NEXT_PUBLIC_AGORA_APP_ID!,
+      //   channel,
+      //   data.token,
+      //   userId
+      // );
 
       localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
 
@@ -117,23 +130,22 @@ useEffect(() => {
   };
 
   // ❌ END CALL
-  const endCall = async () => {
-    tracks.forEach((t) => t.stop());
-    await client?.leave();
-    window.location.href = "/profile"; // redirect
-  };
+  // const endCall = async () => {
+  //   tracks.forEach((t) => t.stop());
+  //   await client?.leave();
+  //   window.location.href = "/profile"; // redirect
+  // };
 
   console.log("appointment:", appointment);
   console.log("appoinmentId", appointmentId);
   const handleEndCall = async () => {
   try {
-    //await axiosInstance.patch(`/api/appointments/${appointmentId}/end-call`);
     await axios.patch(`/api/appointments/${appointmentId}/end-call`);
 
     // stop tracks
     tracks.forEach((t: any) => t.stop());
 
-    await client.leave();
+    await client?.leave();
 
     window.location.href = "/profile";
   } catch {
@@ -189,7 +201,7 @@ useEffect(() => {
         </button> */}
 
         <button
-            onClick={endCall}
+            onClick={handleEndCall}
             className="bg-red-600 text-white px-4 py-2 rounded"
           >
             🔴 End Call

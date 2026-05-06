@@ -8,7 +8,6 @@ import { SYMPTOM_MAP } from "@/lib/constants";
 import ProfileImage from "@/components/ProfileImage";
 import BookingModal from "@/components/BookingModal";
 import generateTimeSlots from "@/lib/GenerateTimeSlot";
-import { useSession } from "next-auth/react";
 
 type Doctor = {
   _id: string;
@@ -29,51 +28,47 @@ export default function CreateAppointmentPage() {
   const [user, setUser] = useState<any>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const { data: session, status } = useSession();
+ const [appointments, setAppointments] = useState<Appointment[]>([]);
+
 
   const router = useRouter();
 
   type Appointment = {
-    doctorId: string;
-    date: string;
-    time: string;
-    status: string;
+  doctorId: string;
+  date: string;
+  time: string;
+  status: string;
+};
+
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const [userRes, apptRes, doctorRes] = await Promise.all([
+        axiosInstance.get("/api/auth/me"),
+        axiosInstance.get("/api/appointments"),
+        axiosInstance.get("/api/doctors"),
+      ]);
+
+      setUser(userRes.data.user);
+      setAppointments(apptRes.data || []);
+      setDoctors(doctorRes.data || []);
+
+    } catch (err) {
+      console.error("Load error:", err);
+      toast.error("Failed to load data");
+    }
   };
 
-   useEffect(() => {
-      if (session?.user) {
-        setUser(session.user);
-      }
-    }, [session]);
+  loadData();
+}, []);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [apptRes, doctorRes] = await Promise.all([
-          // axiosInstance.get("/api/auth/me"),
-          axiosInstance.get("/api/appointments"),
-          axiosInstance.get("/api/doctors"),
-        ]);
-
-        // setUser(userRes.data.user);
-        setAppointments(apptRes.data || []);
-        setDoctors(doctorRes.data || []);
-      } catch (err) {
-        console.error("Load error:", err);
-        toast.error("Failed to load data");
-      }
-    };
-    loadData();
-  }, []);
-
-  const symptomsList = Object.keys(SYMPTOM_MAP);
+const symptomsList = Object.keys(SYMPTOM_MAP);
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms((prev) =>
       prev.includes(symptom)
         ? prev.filter((s) => s !== symptom)
-        : [...prev, symptom],
+        : [...prev, symptom]
     );
   };
 
@@ -86,185 +81,219 @@ export default function CreateAppointmentPage() {
     return Array.from(set);
   }, [selectedSymptoms]);
 
-  const filteredDoctors = doctors.filter((d) => {
-    if (selectedSymptoms.length === 0) return true;
 
-    return selectedSymptoms.some((symptom) =>
-      SYMPTOM_MAP[symptom]?.includes(d.specialization),
-    );
-  });
+
+  const filteredDoctors = doctors.filter((d) => {
+  if (selectedSymptoms.length === 0) return true;
+
+  return selectedSymptoms.some((symptom) =>
+    SYMPTOM_MAP[symptom]?.includes(d.specialization)
+  );
+});
 
   //const timeSlots = ["10:00", "11:00", "12:00", "14:00", "15:00", "15:30", "16:00"];
 
-  const timeSlots = generateTimeSlots(9, 18);
+const timeSlots = generateTimeSlots(9, 20);
 
-  const bookedSlots = appointments
-    .filter((a) => {
-      return (
-        a.doctorId === selectedDoctor?._id &&
-        a.date === date &&
-        a.status !== "cancelled"
-      );
-    })
-    .map((a) => a.time);
+const bookedSlots = appointments
+  .filter((a) => {
+    return (
+      a.doctorId === selectedDoctor?._id &&
+      a.date === date &&
+      a.status !== "cancelled" && a.status !== "rejected" && a.status !== "completed"
+    );
+  })
+  .map((a) => a.time);
 
   // Booking API call
   const handleBook = async () => {
-    if (!problem || !date || !time || !selectedDoctor) {
-      toast.error("Fill all fields");
-      return;
-    }
+  if (!problem || !date || !time || !selectedDoctor) {
+    toast.error("Fill all fields");
+    return;
+  }
 
-    if (!user?.id) {
-      toast.error("User not loaded properly");
-      return;
-    }
+  if (!user?.userId ) {
+    toast.error("User not loaded properly");
+    return;
+  }
 
-    try {
-      setBookingLoading(true);
+  try {
 
-      const res = await axiosInstance.post("/api/appointments", {
-        patientName: user.name, //  auto fill
-        patientId: user.id, //  correct
-        patientEmail: user.email, //  auto fill
+  setBookingLoading(true);
 
-        problem,
+    const res = await axiosInstance.post("/api/appointments", {
+      patientName: user.name,      //  auto fill
+      patientId: user.userId,      //  correct
+      patientEmail: user.email,    //  auto fill
 
-        doctorId: selectedDoctor._id,
-        doctorEmail: selectedDoctor.email,
-        doctor: selectedDoctor.name,
+      problem,
 
-        date,
-        time,
-        appointmentDateTime: new Date(`${date}T${time}:00`),
-        symptoms: selectedSymptoms,
-        status: "pending",
-      });
+      doctorId: selectedDoctor._id,
+      doctorEmail: selectedDoctor.email,
+      doctor: selectedDoctor.name,
 
-      console.log("Saved:", res.data);
 
-      toast.success(
-        "Email sent to doctor successfully! he will approve your appointment soon.",
-      );
-      router.push("/appointments"); // redirect to appointments list
+      date,
+      time,
+      appointmentDateTime: new Date(`${date}T${time}:00`),
+      symptoms: selectedSymptoms,
+      status: "pending",
+    });
 
-      // reset
-      setSelectedDoctor(null);
-      setPatientName("");
-      setProblem("");
-      setDate("");
-      setTime("");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error");
-    } finally {
-      setBookingLoading(false);
-    }
-  };
+    console.log("Saved:", res.data);
 
-  return (
-    <div className=" mx-auto space-y-4 p-4">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">
-          Book Appointment 🩺
-        </h1>
+    toast.success("Email sent to doctor successfully! he will approve your appointment soon.");
+    router.push("/profile");
+
+    // reset
+    setSelectedDoctor(null);
+    setPatientName("");
+    setProblem("");
+    setDate("");
+    setTime("");
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || "Error");
+  }finally {
+    setBookingLoading(false);
+  }
+};
+
+const isPastTime = (slot: string) => {
+  if (!date) return false;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  if (date !== today) return false;
+
+  const now = new Date();
+  const [h, m] = slot.split(":").map(Number);
+
+  const slotTime = new Date();
+  slotTime.setHours(h, m, 0);
+
+  return slotTime < now; // ❌ past time
+};
+
+ return (
+  <div className=" mx-auto space-y-4 p-4">
+
+    {/* Header */}
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800">
+        Book Appointment 🩺
+      </h1>
+      <p className="text-gray-500 text-sm">
+        Select symptoms and choose the best doctor
+      </p>
+    </div>
+
+    {/* 🏷️ SYMPTOMS */}
+    <div>
+      <h2 className="font-semibold mb-2 text-gray-700">
+        Select Symptoms
+      </h2>
+
+      <div className="flex flex-wrap gap-2">
+        {symptomsList.map((symptom) => (
+          <button
+            key={symptom}
+            onClick={() => toggleSymptom(symptom)}
+            className={`px-4 py-1.5 rounded-full text-sm transition border ${
+              selectedSymptoms.includes(symptom)
+                ? "bg-blue-600 text-white border-blue-600 shadow"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
+            }`}
+          >
+            {symptom}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* 👨‍⚕️ DOCTORS */}
+    <div>
+      <h2 className="font-semibold mb-2 text-gray-700">
+        Available Doctors
+      </h2>
+
+      {filteredDoctors.length === 0 ? (
         <p className="text-gray-500 text-sm">
-          Select symptoms and choose the best doctor
+          No doctors found for selected symptoms
         </p>
-      </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
 
-      {/* 🏷️ SYMPTOMS */}
-      <div>
-        <h2 className="font-semibold mb-2 text-gray-700">Select Symptoms</h2>
-
-        <div className="flex flex-wrap gap-2">
-          {symptomsList.map((symptom) => (
-            <button
-              key={symptom}
-              onClick={() => toggleSymptom(symptom)}
-              className={`px-4 py-1.5 rounded-full text-sm transition border ${
-                selectedSymptoms.includes(symptom)
-                  ? "bg-blue-600 text-white border-blue-600 shadow"
-                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
-              }`}
+          {filteredDoctors.map((doc) => (
+            <div
+              key={doc._id}
+              className={`p-4 rounded-2xl border bg-white shadow-sm hover:shadow-lg transition flex justify-between items-center ${
+                        selectedDoctor?._id === doc._id
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : ""
+                      }`}
             >
-              {symptom}
-            </button>
-          ))}
-        </div>
-      </div>
+              <div className="flex items-center gap-3">
 
-      {/* 👨‍⚕️ DOCTORS */}
-      <div>
-        <h2 className="font-semibold mb-2 text-gray-700">Available Doctors</h2>
+                <ProfileImage
+                  src={doc.profileImage}
+                  name={doc.name}
+                />
 
-        {filteredDoctors.length === 0 ? (
-          <p className="text-gray-500 text-sm">
-            No doctors found for selected symptoms
-          </p>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {filteredDoctors.map((doc) => (
-              <div
-                key={doc._id}
-                className={`p-4 rounded-2xl border bg-white shadow-sm hover:shadow-lg transition flex justify-between items-center ${
-                  selectedDoctor?._id === doc._id
-                    ? "border-blue-500 ring-2 ring-blue-200"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ProfileImage src={doc.profileImage} name={doc.name} />
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    {doc.name}
+                  </p>
 
-                  <div>
-                    <p className="font-semibold text-gray-800">{doc.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {doc.specialization}
+                  </p>
 
-                    <p className="text-sm text-gray-500">
-                      {doc.specialization}
-                    </p>
-
-                    <p className="text-xs text-gray-400">
-                      {doc.experience || 0} yrs experience
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-400">
+                    {doc.experience || 0} yrs experience
+                  </p>
                 </div>
-
-                <button
-                  onClick={() => setSelectedDoctor(doc)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
-                >
-                  {selectedDoctor?._id === doc._id ? "Selected" : "Book"}
-                </button>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* 👨‍⚕️ SELECTED */}
-      {selectedDoctor && (
-        <div className="p-3 bg-green-100 text-green-700 rounded-lg">
-          Selected Doctor: <b>{selectedDoctor.name}</b>
+              <button
+                onClick={() => setSelectedDoctor(doc)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
+              >
+                {selectedDoctor?._id === doc._id
+                  ? "Selected"
+                  : "Book"}
+              </button>
+            </div>
+          ))}
+
         </div>
       )}
-
-      {/* MODAL */}
-      <BookingModal
-        open={!!selectedDoctor}
-        onClose={() => setSelectedDoctor(null)}
-        doctor={selectedDoctor}
-        user={user}
-        problem={problem}
-        setProblem={setProblem}
-        date={date}
-        setDate={setDate}
-        time={time}
-        setTime={setTime}
-        timeSlots={timeSlots}
-        onConfirm={handleBook}
-        loading={bookingLoading}
-        bookedSlots={bookedSlots}
-      />
     </div>
-  );
+
+    {/* 👨‍⚕️ SELECTED */}
+    {selectedDoctor && (
+      <div className="p-3 bg-green-100 text-green-700 rounded-lg">
+        Selected Doctor: <b>{selectedDoctor.name}</b>
+      </div>
+    )}
+
+    {/* MODAL */}
+  <BookingModal
+      open={!!selectedDoctor}
+      onClose={() => setSelectedDoctor(null)}
+      doctor={selectedDoctor}
+      user={user}
+      problem={problem}
+      setProblem={setProblem}
+      date={date}
+      setDate={setDate}
+      time={time}
+      setTime={setTime}
+      timeSlots={timeSlots}
+      onConfirm={handleBook}
+      loading={bookingLoading}
+       bookedSlots={bookedSlots}
+       isPastime={isPastTime}
+    />
+  </div>
+);
 }

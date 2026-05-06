@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
+import Loader from "@/components/Loader";
 
 export default function AdminLayout({ children }: any) {
   // const [user, setUser] = useState<any>(null);

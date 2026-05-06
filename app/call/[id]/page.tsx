@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import VideoCall from "@/components/VideoCall";
 import { useSession } from "next-auth/react";
+import Loader from "@/components/Loader";
 
 export default function CallPage() {
   const params = useParams();
@@ -26,7 +27,7 @@ export default function CallPage() {
 
   console.log("Current user in call page:", user);
 
-  if (!user) return <p className="text-white p-4">Loading...</p>;
+  if (!user) return <Loader />;
 
   // instead of user.userId directly
   const sessionUid = `${user.userId}_${Date.now()}`; // unique per join
