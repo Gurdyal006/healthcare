@@ -30,7 +30,7 @@ export default function PatientLayout({ children }: any) {
   // }, []);
 
   // if (!user) return <p className="p-6">Loading...</p>;
-  if (!user) return <Loader />;
+  //if (!user) return <Loader />;
 
   return (
     <div className="flex">
