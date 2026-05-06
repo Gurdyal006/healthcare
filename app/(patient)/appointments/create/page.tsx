@@ -8,6 +8,7 @@ import { SYMPTOM_MAP } from "@/lib/constants";
 import ProfileImage from "@/components/ProfileImage";
 import BookingModal from "@/components/BookingModal";
 import generateTimeSlots from "@/lib/GenerateTimeSlot";
+ import { useSession } from "next-auth/react";
 
 type Doctor = {
   _id: string;
@@ -28,8 +29,10 @@ export default function CreateAppointmentPage() {
   const [user, setUser] = useState<any>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [bookingLoading, setBookingLoading] = useState(false);
- const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const { data: session, status } = useSession();
 
+console.log(session, "session in create appointment page");
 
   const router = useRouter();
 
@@ -41,15 +44,18 @@ export default function CreateAppointmentPage() {
 };
 
 useEffect(() => {
+        if (session?.user) {
+      setUser(session.user);
+    }
   const loadData = async () => {
     try {
-      const [userRes, apptRes, doctorRes] = await Promise.all([
-        axiosInstance.get("/api/auth/me"),
+      const [ apptRes, doctorRes] = await Promise.all([
+        //axiosInstance.get("/api/auth/me"),
         axiosInstance.get("/api/appointments"),
         axiosInstance.get("/api/doctors"),
       ]);
 
-      setUser(userRes.data.user);
+      //setUser(userRes.data.user);
       setAppointments(apptRes.data || []);
       setDoctors(doctorRes.data || []);
 
@@ -60,7 +66,7 @@ useEffect(() => {
   };
 
   loadData();
-}, []);
+}, [session]);
 
 const symptomsList = Object.keys(SYMPTOM_MAP);
 
@@ -112,7 +118,7 @@ const bookedSlots = appointments
     return;
   }
 
-  if (!user?.userId ) {
+  if (!user?.id ) {
     toast.error("User not loaded properly");
     return;
   }

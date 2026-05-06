@@ -21,14 +21,34 @@ export default function DoctorProfilePage() {
 
  
 
-  useEffect(() => {
-    // fetchUser();
-    if (session?.user) {
-      setUser(session.user);
-    }
-    // fetchUser();
-    fetchAppointments();
-  }, [session]);
+ useEffect(() => {
+  fetchAppointments();
+}, [session]);
+
+console.log(session?.user?.id, "session user id in doctor profile");
+
+const currentUserId = session?.user?.id || null;
+
+useEffect(() => {
+  if (currentUserId) {
+    fetchUser();
+  }
+}, [currentUserId]);
+
+const fetchUser = async () => {
+  try {
+    const res = await axios.get(`/api/user/${currentUserId}`);
+    setUser(res.data);
+
+    toast.success("User loaded");
+  } catch (error) {
+    console.log(error);
+
+    toast.error("User load failed");
+  }
+};
+
+console.log(user, "fetched user in doctor profile");
 
   // const fetchUser = async () => {
   //   try {
