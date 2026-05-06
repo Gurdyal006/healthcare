@@ -55,7 +55,7 @@ const roleMap: any = {
 
       {/* Left */}
       <h1 className="font-semibold text-lg text-gray-800">
-        ""
+        Appointment Management System
       </h1>
 
       {/* Right */}

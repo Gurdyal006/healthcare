@@ -44,7 +44,7 @@ export default function Sidebar({ role }: Props) {
 
   return (
     <div className="w-64  bg-gray-900 text-white p-5">
-      <h2 className="text-xl font-bold mb-6">HealthCare</h2>
+      <h2 className="text-xl font-bold mb-6">TM-HealthCare</h2>
 
       <ul className="space-y-2">
         {menu.map((item) => {
