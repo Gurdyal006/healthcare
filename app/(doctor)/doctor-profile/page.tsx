@@ -15,6 +15,7 @@ export default function DoctorProfilePage() {
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [showReject, setShowReject] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
  
 
@@ -64,20 +65,43 @@ const fetchUser = async () => {
 
   // ✅ update status
   const updateStatus = async (id: string, status: string) => {
-    try {
-      await axios.patch(`/api/appointments/${id}`, { status });
+  if (updatingId === id) return;
 
-      setAppointments((prev) =>
-        prev.map((a) =>
-          a._id === id ? { ...a, status } : a
-        )
-      );
+  // 🔥 optimistic update
+  const prevState = appointments;
+  setAppointments((prev) =>
+    prev.map((a) => (a._id === id ? { ...a, status } : a))
+  );
 
-      toast.success(`Appointment ${status}`);
-    } catch {
-      toast.error("Update failed");
-    }
-  };
+  try {
+    setUpdatingId(id);
+
+    await axios.patch(`/api/appointments/${id}`, { status });
+
+    toast.success(`Appointment ${status}`);
+  } catch {
+    // ❗ rollback if failed
+    setAppointments(prevState);
+    toast.error("Update failed");
+  } finally {
+    setUpdatingId(null);
+  }
+};
+  // const updateStatus = async (id: string, status: string) => {
+  //   try {
+  //     await axios.patch(`/api/appointments/${id}`, { status });
+
+  //     setAppointments((prev) =>
+  //       prev.map((a) =>
+  //         a._id === id ? { ...a, status } : a
+  //       )
+  //     );
+
+  //     toast.success(`Appointment ${status}`);
+  //   } catch {
+  //     toast.error("Update failed");
+  //   }
+  // };
 
   const handleReschedule = async () => {
   if (!newDate || !newTime) {
@@ -284,13 +308,18 @@ return (
                         <>
                            {/* ✅ ACCEPT */}
                               <button
-                                onClick={() => updateStatus(a._id, "confirmed")}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg 
-                                          bg-green-600 hover:bg-green-700 text-white 
-                                          text-sm font-medium transition duration-200 shadow"
-                              >
-                               Accept
-                              </button>
+                                  disabled={updatingId === a._id}
+                                  onClick={() => updateStatus(a._id, "confirmed")}
+                                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow
+                                    ${
+                                      updatingId === a._id
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-green-600 hover:bg-green-700 text-white"
+                                    }
+                                  `}
+                                >
+                                  {updatingId === a._id ? "Processing..." : "Accept"}
+                                </button>
 
                               {/* ❌ REJECT */}
                               <button

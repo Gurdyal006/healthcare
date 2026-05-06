@@ -8,12 +8,16 @@ import StatCard from "@/components/StatCard";
 import BasicStat from "@/components/BasicStat";
 import Loader from "@/components/Loader";
 import Link from "next/link";
+import { a } from "framer-motion/client";
+// import Pagination from "@/components/Pagination";
 
 export default function PatientProfile() {
   const [user, setUser] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
    const [filter, setFilter] = useState("all");
+  //  const [page, setPage] = useState(1);
+  // const [totalPages, setTotalPages] = useState(1);
 
 const filteredAppointments = appointments
   .filter(a =>
@@ -36,15 +40,34 @@ const filteredAppointments = appointments
       toast.error("User load failed");
     }
   };
+  
+ const fetchAppointments = async () => {
+  try {
+    const res = await axios.get(
+      `/api/appointments`
+    );
 
-  const fetchAppointments = async () => {
-    try {
-      const res = await axios.get("/api/appointments");
-      setAppointments(res.data || []);
-    } catch {
-      toast.error("Appointments failed");
-    }
-  };
+    setAppointments(res.data || []);
+
+  } catch {
+    toast.error("Appointments failed");
+  }
+};
+
+//  const fetchAppointments = async (pageNumber = 1) => {
+//   try {
+//     const res = await axios.get(
+//       `/api/appointments?page=${pageNumber}&limit=10`
+//     );
+
+//     setAppointments(res.data.data || []);
+//     setTotalPages(res.data.totalPages);
+//     setPage(res.data.page);
+
+//   } catch {
+//     toast.error("Appointments failed");
+//   }
+// };
 
   if (!user) return <Loader />;
 
@@ -238,6 +261,12 @@ return (
 
       </div>
     )}
+
+    {/* <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={(p) => fetchAppointments(p)}
+      /> */}
   </div>
 );
 }
