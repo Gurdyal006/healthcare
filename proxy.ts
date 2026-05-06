@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export function proxy(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-  const role = request.cookies.get("role")?.value; // "doctor" | "patient"
+export async function proxy(request: NextRequest) {
+  const token: any = await getToken({ req: request }); // ✅ NextAuth token
 
   const { pathname } = request.nextUrl;
 
@@ -40,6 +40,8 @@ export function proxy(request: NextRequest) {
   // 3. ROLE-BASED PROTECTION
   // =========================
 
+  const role = token?.role; // ✅ from NextAuth jwt callback
+
   // Doctor-only routes
   if (pathname.startsWith("/doctor") && role !== "doctor") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -53,7 +55,6 @@ export function proxy(request: NextRequest) {
   // =========================
   // 4. OPTIONAL: VIDEO CALL PROTECTION
   // =========================
-  // Example: only allow if logged in
   if (pathname.startsWith("/video-call") && !token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -65,7 +66,7 @@ export function proxy(request: NextRequest) {
 }
 
 // =========================
-// MATCHER (IMPORTANT)
+// MATCHER
 // =========================
 
 export const config = {
@@ -80,30 +81,3 @@ export const config = {
     "/signup",
   ],
 };
-
-// import { NextResponse } from "next/server";
-// import type { NextRequest } from "next/server";
-
-// export function middleware(request: NextRequest) {
-//   const token = request.cookies.get("token");
-
-//   const { pathname } = request.nextUrl;
-
-//   // Protected routes
-//   const protectedRoutes = ["/dashboard", "/appointments", "/profile"];
-
-//   // Auth pages
-//   const authRoutes = ["/login", "/signup"];
-
-//   // ❌ Not logged in → block protected pages
-//   if (!token && protectedRoutes.some((route) => pathname.startsWith(route))) {
-//     return NextResponse.redirect(new URL("/login", request.url));
-//   }
-
-//   // ❌ Logged in → block login/signup
-//   if (token && authRoutes.includes(pathname)) {
-//     return NextResponse.redirect(new URL("/dashboard", request.url));
-//   }
-
-//   return NextResponse.next();
-// }

@@ -1,10 +1,11 @@
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export default async function Home() {
-  const token =  (await cookies()).get("token");
+  const session = await getServerSession(authOptions);
 
-  if (token) {
+  if (session) {
     redirect("/dashboard");
   } else {
     redirect("/login");

@@ -4,46 +4,48 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
 import Loader from "@/components/Loader";
 
 export default function AppointmentsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-
   const [appointments, setAppointments] = useState<any[]>([]);
+  const { data: session, status } = useSession();
+
   const [user, setUser] = useState<any>(null);
   const [loader, setLoader] = useState(true);
-  
 
-useEffect(() => {
-  loadData();
-}, []);
+  useEffect(() => {
+    if (session?.user) {
+      setUser(session.user);
+    }
+    loadData();
+  }, [session]);
 
-const loadData = async () => {
-  try {
-    setLoader(true);
+  const loadData = async () => {
+    try {
+      setLoader(true);
 
-    const [userRes, apptRes] = await Promise.all([
-      axios.get("/api/auth/me"),
-      axios.get("/api/appointments"),
-    ]);
+      const [apptRes] = await Promise.all([
+        // axios.get("/api/auth/me"),
+        axios.get("/api/appointments"),
+      ]);
 
-    setUser(userRes.data.user);
-    setAppointments(apptRes.data || []);
-  } catch {
-    toast.error("Failed to load data");
-  } finally {
-    setLoader(false);
-  }
-};
-console.log("results:", appointments);
+      // setUser(userRes.data.user);
+      setAppointments(apptRes.data || []);
+    } catch {
+      toast.error("Failed to load data");
+    } finally {
+      setLoader(false);
+    }
+  };
+  console.log("results:", appointments);
 
   if (!user) return <Loader />;
 
   // ✅ ONLY PATIENT APPOINTMENTS
-  const myAppointments = appointments.filter(
-    (a) => a.patientId === user.userId
-  );
+  const myAppointments = appointments.filter((a) => a.patientId === user.id);
 
   console.log("my appoinments----", myAppointments);
 
@@ -53,11 +55,25 @@ console.log("results:", appointments);
       ?.toLowerCase()
       .includes(search.toLowerCase());
 
-      console.log("matchesSearch:", matchesSearch, "for problem:", a.problem, "with search:", search);
+    console.log(
+      "matchesSearch:",
+      matchesSearch,
+      "for problem:",
+      a.problem,
+      "with search:",
+      search,
+    );
 
     const matchesStatus =
       statusFilter === "All" || a.status === statusFilter.toLowerCase();
-      console.log("matchesStatus:", matchesStatus, "for status:", a.status, "with filter:", statusFilter);
+    console.log(
+      "matchesStatus:",
+      matchesStatus,
+      "for status:",
+      a.status,
+      "with filter:",
+      statusFilter,
+    );
 
     return matchesSearch && matchesStatus;
   });
@@ -79,9 +95,7 @@ console.log("results:", appointments);
       toast.success("Appointment cancelled");
 
       setAppointments((prev) =>
-        prev.map((a) =>
-          a._id === id ? { ...a, status: "cancelled" } : a
-        )
+        prev.map((a) => (a._id === id ? { ...a, status: "cancelled" } : a)),
       );
     } catch {
       toast.error("Cancel failed");
@@ -90,7 +104,6 @@ console.log("results:", appointments);
 
   return (
     <div className="bg-gray-100 p-6 space-y-6">
-
       {/* 👤 PROFILE CARD */}
       <div className="bg-white p-5 rounded-xl shadow flex items-center gap-4">
         <img
@@ -106,24 +119,19 @@ console.log("results:", appointments);
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            My Appointments
-          </h1>
-          <p className="text-sm text-gray-500">
-            Manage your bookings
-          </p>
+          <h1 className="text-2xl font-bold text-gray-800">My Appointments</h1>
+          <p className="text-sm text-gray-500">Manage your bookings</p>
         </div>
 
-      <Link href="/appointments/create">
-       <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-         + New Appointment
-       </button>
-     </Link>
+        <Link href="/appointments/create">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            + New Appointment
+          </button>
+        </Link>
       </div>
 
       {/* FILTERS */}
       <div className="bg-white p-4 rounded-xl shadow border flex flex-col md:flex-row gap-3">
-
         <input
           type="text"
           placeholder="Search problem..."
@@ -146,7 +154,6 @@ console.log("results:", appointments);
       {/* TABLE */}
       <div className="bg-white rounded-2xl shadow border overflow-hidden">
         <table className="w-full text-sm">
-
           <thead className="bg-gray-50 text-gray-600 text-left">
             <tr>
               <th className="p-4">Problem</th>
@@ -160,15 +167,16 @@ console.log("results:", appointments);
           <tbody>
             {filtered.map((item) => (
               <tr key={item._id} className="border-t hover:bg-gray-50">
-
                 <td className="p-4 font-medium">{item.problem}</td>
                 <td>{item.doctor}</td>
-                <td>{item.date} • {item.time}</td>
+                <td>
+                  {item.date} • {item.time}
+                </td>
 
                 <td>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                      item.status
+                      item.status,
                     )}`}
                   >
                     {item.status}
@@ -176,7 +184,6 @@ console.log("results:", appointments);
                 </td>
 
                 <td className="text-right pr-4 space-x-2">
-
                   {item.status !== "cancelled" && (
                     <button
                       onClick={() => cancelAppointment(item._id)}
@@ -185,13 +192,10 @@ console.log("results:", appointments);
                       Cancel
                     </button>
                   )}
-
                 </td>
-
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
     </div>

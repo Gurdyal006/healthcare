@@ -10,6 +10,8 @@ import Loader from "@/components/Loader";
 import Link from "next/link";
 import { a } from "framer-motion/client";
 // import Pagination from "@/components/Pagination";
+import { useSession } from "next-auth/react";
+
 
 export default function PatientProfile() {
   const [user, setUser] = useState<any>(null);
@@ -18,6 +20,7 @@ export default function PatientProfile() {
    const [filter, setFilter] = useState("all");
   //  const [page, setPage] = useState(1);
   // const [totalPages, setTotalPages] = useState(1);
+   const { data: session, status } = useSession();
 
 const filteredAppointments = appointments
   .filter(a =>
@@ -28,18 +31,13 @@ const filteredAppointments = appointments
   );
 
   useEffect(() => {
-    fetchUser();
-    fetchAppointments();
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get("/api/auth/me");
-      setUser(res.data.user);
-    } catch {
-      toast.error("User load failed");
+    // fetchUser();
+      if (session?.user) {
+      setUser(session.user);
     }
-  };
+    fetchAppointments();
+  }, [session]);
+
   
  const fetchAppointments = async () => {
   try {
@@ -190,7 +188,7 @@ return (
               + New Appointment
             </button>
           </Link>
-    </div> */}
+    </div>
 
     {/* 📅 LIST */}
     {filteredAppointments.length === 0 ? (
@@ -306,6 +304,3 @@ return (
   </div>
 );
 }
-
-
-

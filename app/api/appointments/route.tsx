@@ -1,7 +1,9 @@
 import { connectDB } from "@/lib/mongodb";
 import Appointment from "@/models/Appointment";
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 import {
   patientTemplate,
@@ -136,38 +138,25 @@ export async function POST(req: Request) {
 // }
 
 export async function GET() {
-  try {
-    await connectDB();
+  await connectDB();
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+  const session = await getServerSession(authOptions);
 
-    if (!token) {
-      return Response.json({ message: "No token" }, { status: 401 });
-    }
-
-    const user: any = jwt.verify(token, process.env.JWT_SECRET!);
-
-    let query: any = {};
-
-    // ✅ ROLE BASED FILTER
-    if (user.role === "admin") {
-      query = {}; // all
-    } else if (user.role === "doctor") {
-      query = { doctorId: user.userId };
-    } else {
-      query = { patientId: user.userId };
-    }
-
-    const data = await Appointment.find(query)
-        // .select(
-        //   "patientName doctor date time status meetingStarted createdAt problem"
-        // )
-      .sort({ createdAt: -1 })
-      .lean(); 
-
-    return Response.json(data);
-  } catch (err: any) {
-    return Response.json({ message: err.message }, { status: 500 });
+  if (!session) {
+    return Response.json({ message: "Unauthorized" }, { status: 401 });
   }
+
+  const user = session.user;
+
+  let data;
+
+  if (user.role === "admin") {
+    data = await Appointment.find().sort({ createdAt: -1 });
+  } else if (user.role === "doctor") {
+    data = await Appointment.find({ doctorId: user.id });
+  } else {
+    data = await Appointment.find({ patientId: user.id });
+  }
+
+  return Response.json(data);
 }
