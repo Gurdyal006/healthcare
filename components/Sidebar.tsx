@@ -29,6 +29,7 @@ export default function Sidebar({ role }: Props) {
  const patientMenu = [
   { name: "My Appointments", path: "/profile" },
   { name: "Book Appointment", path: "/appointments/create" },
+  {name: "AI Doctor", path: "/ai-doctors"}
 ];
 
   const menu = role === "admin" ? adminMenu : role === "doctor" ? doctorMenu : patientMenu;
