@@ -118,6 +118,11 @@ const bookedSlots = appointments
     return;
   }
 
+  console.log("Booking with:", {
+    patientName: user.name,
+    patientId: user.userId,
+  });
+
   if (!user?.id ) {
     toast.error("User not loaded properly");
     return;

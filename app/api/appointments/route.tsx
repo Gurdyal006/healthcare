@@ -20,6 +20,8 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    console.log("Received appointment booking request with data:", body);
+
     const exists = await Appointment.findOne({
       doctorId: body.doctorId,
       doctor: body.doctor,
@@ -68,11 +70,11 @@ export async function POST(req: Request) {
           subject: "New Appointment Request 📅",
           html: doctorTemplate(body),
         }),
-        sendMail({
-          to: process.env.HOSPITAL_EMAIL,
-          subject: "New Appointment Booked 🏥",
-          html: adminTemplate(body),
-        }),
+        // sendMail({
+        //   to: process.env.HOSPITAL_EMAIL,
+        //   subject: "New Appointment Booked 🏥",
+        //   html: adminTemplate(body),
+        // }),
       ]);
     } catch (e) {
       console.log("Email failed:");
@@ -147,6 +149,7 @@ export async function GET() {
   }
 
   const user = session.user;
+  console.log("Authenticated user in GET /api/appointments:", user);
 
   let data;
 
@@ -155,8 +158,11 @@ export async function GET() {
   } else if (user.role === "doctor") {
     data = await Appointment.find({ doctorId: user.id });
   } else {
+    console.log("Fetching appointments for patient with ID:", user.id);
     data = await Appointment.find({ patientId: user.id });
   }
+
+  console.log("Fetched appointments:123", data);
 
   return Response.json(data);
 }
