@@ -19,7 +19,11 @@ export const SPECIALIZATIONS = [
   "Physiotherapist",
 ];
 
-export const SYMPTOM_MAP: Record<string, string[]> = {
+
+  export const SYMPTOM_MAP: Record<
+  string,
+  string[]
+> = {
   // General
   Fever: ["General Physician"],
   Fatigue: ["General Physician"],

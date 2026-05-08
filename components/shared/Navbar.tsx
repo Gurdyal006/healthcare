@@ -41,8 +41,8 @@ export default function Navbar() {
             Services
           </Link>
 
-          <Link href="/appointments" className="hover:text-blue-600 transition">
-            Appointments
+          <Link href="/ai-doctors" className="hover:text-blue-600 transition">
+            AI Doctors
           </Link>
 
           <Link href="/contact" className="hover:text-blue-600 transition">

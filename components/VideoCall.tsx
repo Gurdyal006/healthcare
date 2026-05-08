@@ -80,15 +80,15 @@ const [appointment, setAppointment] = useState<any>(null);
     };
   }, [appointmentId, userId]);
 
-  useEffect(() => {
-  const fetchAppointment = async () => {
-    const res = await fetch(`/api/appointments/${appointmentId}`);
-    const data = await res.json();
-    setAppointment(data);
-  };
+//   useEffect(() => {
+//   const fetchAppointment = async () => {
+//     const res = await fetch(`/api/appointments/${appointmentId}`);
+//     const data = await res.json();
+//     setAppointment(data);
+//   };
 
-  fetchAppointment();
-}, [appointmentId]);
+//   fetchAppointment();
+// }, [appointmentId]);
 
 useEffect(() => {
   const interval = setInterval(() => {
