@@ -159,7 +159,7 @@ export async function GET() {
     data = await Appointment.find({ doctorId: user.id });
   } else {
     console.log("Fetching appointments for patient with ID:", user.id);
-    data = await Appointment.find({ patientId: user.id });
+    data = await Appointment.find({ patientId: user.id }).sort({ createdAt: -1 });
   }
 
   console.log("Fetched appointments:123", data);

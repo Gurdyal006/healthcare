@@ -23,11 +23,9 @@ export default function NavbarSection() {
 
   console.log("Current user in NavbarSection:", user, user?.name, user?.role);
 
-  if (status === "loading") {
-    return null;
-  }
-
-
+  // if (status === "loading") {
+  //   return null;
+  // }
 
   return (
     <>
@@ -46,7 +44,7 @@ export default function NavbarSection() {
           <nav className="hidden md:flex items-center gap-8 text-sm text-slate-300">
             <a href="/" className="hover:text-cyan-400 transition">Home</a>
             <a href="/doctors" className="hover:text-cyan-400 transition">Doctors</a>
-            <a href="/appointments" className="hover:text-cyan-400 transition">Appointments</a>
+            <a href="/ai-doctors" className="hover:text-cyan-400 transition">AI Doctors</a>
             <a href="/services" className="hover:text-cyan-400 transition">Services</a>
             <a href="/contact" className="hover:text-cyan-400 transition">Contact</a>
           </nav>
