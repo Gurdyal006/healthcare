@@ -179,7 +179,7 @@ Object.entries(SYMPTOM_MAP).forEach(
 
             </div>
 
-            {specialization && (
+            {/* {specialization && (
 
               <div className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-3 rounded-2xl text-sm font-semibold shadow-lg">
 
@@ -190,7 +190,7 @@ Object.entries(SYMPTOM_MAP).forEach(
                 {specialization}
 
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </section>
