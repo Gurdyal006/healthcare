@@ -271,6 +271,7 @@ import {
   FaUserMd,
   FaClock,
   FaPhoneAlt,
+  FaMailBulk,
 } from "react-icons/fa";
 
 import { useEffect, useState } from "react";
@@ -341,6 +342,8 @@ export default function DoctorProfilePage() {
       </div>
     );
   }
+
+ 
 
   return (
     <div className="min-h-screen bg-[#f5f9ff] text-slate-900">
@@ -626,6 +629,13 @@ export default function DoctorProfilePage() {
 
                 {doctor.phone ||
                   "+91 9876543210"}
+
+              </div>
+               <div className="flex items-center gap-4">
+
+                <FaMailBulk className="text-cyan-500 text-xl" />
+
+                {doctor.email}
 
               </div>
 

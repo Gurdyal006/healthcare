@@ -121,6 +121,7 @@ const bookedSlots = appointments
         doctorId: doctor?._id,
         doctor: doctor?.name,
         doctorEmail: doctor?.email,
+        doctorImage: doctor?.profileImage,
 
         problem,
         date,

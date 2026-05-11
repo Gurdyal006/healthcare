@@ -11,6 +11,7 @@ const AppointmentSchema = new mongoose.Schema(
     doctor: String,
     doctorId: String,
     doctorEmail: String,
+    doctorImage: String,
 
     date: String,
     time: String,
@@ -41,6 +42,9 @@ AppointmentSchema.index({ doctorId: 1 });
 AppointmentSchema.index({ patientId: 1 });
 AppointmentSchema.index({ createdAt: -1 });
 
-export default mongoose.models.Appointment ||
+const Appointment =
+  mongoose.models.Appointment ||
   mongoose.model("Appointment", AppointmentSchema);
+
+export default Appointment;
 

@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       doctor: body.doctor,
       date: body.date,
       time: body.time,
+      doctorImage: body.doctorImage,
       appointmentDateTime: new Date(`${body.date}T${body.time}:00`),
       status: { $ne: "cancelled" },
     });
